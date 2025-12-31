@@ -48,6 +48,30 @@
             if (dateElement) {
                 dateElement.textContent = dateString;
             }
+            
+            // Update pinned time if it exists
+            this.updatePinnedTime();
+        }
+        
+        updatePinnedTime() {
+            const pinnedTimeElement = document.getElementById('pinnedTime');
+            if (pinnedTimeElement) {
+                const now = new Date();
+                let hours = now.getHours();
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                
+                let timeString;
+                if (this.format24Hour) {
+                    hours = String(hours).padStart(2, '0');
+                    timeString = `${hours}:${minutes}`;
+                } else {
+                    const ampm = hours >= 12 ? 'PM' : 'AM';
+                    hours = hours % 12 || 12;
+                    timeString = `${hours}:${minutes} ${ampm}`;
+                }
+                
+                pinnedTimeElement.textContent = timeString;
+            }
         }
 
         updateSettings(settings) {
