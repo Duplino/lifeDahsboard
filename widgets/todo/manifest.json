@@ -1,0 +1,33 @@
+{
+  "name": "To-Do Notes",
+  "description": "Interactive checklist for managing tasks",
+  "pinnable": false,
+  "size": {
+    "min": {
+      "width": 2,
+      "height": 3
+    },
+    "default": {
+      "width": 3,
+      "height": 4
+    },
+    "max": {
+      "width": 8,
+      "height": 8
+    }
+  },
+  "settings": {
+    "showCompleted": {
+      "type": "boolean",
+      "label": "Show Completed Tasks",
+      "default": true,
+      "description": "Display or hide completed tasks"
+    },
+    "sortByDate": {
+      "type": "boolean",
+      "label": "Sort by Date",
+      "default": false,
+      "description": "Sort tasks by creation date"
+    }
+  }
+}
