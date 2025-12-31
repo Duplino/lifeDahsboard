@@ -23,18 +23,10 @@ body {
     position: relative;
     display: flex;
     flex-direction: row;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
     gap: 1rem;
     flex-wrap: wrap;
-}
-
-.title-and-pinned {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    flex: 1;
-    min-width: 0;
 }
 
 .dashboard-title {
