@@ -128,44 +128,23 @@ body.edit-mode-active .floating-add-btn {
 }
 
 /* Dashboard Grid */
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(12, 1fr);
-    gap: 1rem;
-    padding: 0 1rem;
-    transition: all 0.3s ease;
+.grid-stack {
+    background: transparent;
 }
 
-/* Widget Container */
-.widget-container {
+/* Make GridstackJS work with our styles */
+.grid-stack > .grid-stack-item {
     min-width: 0;
     transition: all 0.3s ease;
-    cursor: default;
-    position: relative;
 }
 
-.widget-container.hidden {
+.grid-stack > .grid-stack-item > .grid-stack-item-content {
+    overflow: visible;
+    inset: 0;
+}
+
+.grid-stack > .grid-stack-item.hidden {
     display: none;
-}
-
-.widget-container.edit-mode {
-    cursor: move;
-    opacity: 0.95;
-}
-
-.widget-container.edit-mode:hover {
-    transform: scale(1.02);
-    opacity: 1;
-}
-
-.widget-container.sortable-ghost {
-    opacity: 0.5;
-    background: rgba(255, 255, 255, 0.1);
-    border: 2px dashed #fff;
-}
-
-.widget-container.sortable-drag {
-    opacity: 0.8;
 }
 
 /* Widget Styles */
@@ -183,38 +162,6 @@ body.edit-mode-active .floating-add-btn {
 
 .widget:hover {
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
-}
-
-/* Resize Handle */
-.resize-handle {
-    position: absolute;
-    background: rgba(0, 0, 0, 0.1);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.edit-mode .resize-handle {
-    opacity: 1;
-}
-
-.resize-handle-br {
-    bottom: 0;
-    right: 0;
-    width: 20px;
-    height: 20px;
-    cursor: nwse-resize;
-    border-bottom-right-radius: 1rem;
-}
-
-.resize-handle-br::after {
-    content: '';
-    position: absolute;
-    bottom: 4px;
-    right: 4px;
-    width: 12px;
-    height: 12px;
-    border-right: 2px solid rgba(0, 0, 0, 0.3);
-    border-bottom: 2px solid rgba(0, 0, 0, 0.3);
 }
 
 .widget-header {
@@ -240,10 +187,7 @@ body.edit-mode-active .floating-add-btn {
     transition: opacity 0.3s ease;
 }
 
-.widget-container.edit-mode .widget-controls {
-    opacity: 1;
-}
-
+.grid-stack-item.edit-mode .widget-controls,
 .widget:hover .widget-controls {
     opacity: 1;
 }
@@ -534,14 +478,14 @@ body.edit-mode-active .floating-add-btn {
 
 /* Responsive Design */
 @media (max-width: 1200px) {
-    .dashboard-grid {
-        grid-template-columns: repeat(8, 1fr);
+    .grid-stack {
+        /* GridstackJS will handle responsive columns */
     }
 }
 
 @media (max-width: 768px) {
-    .dashboard-grid {
-        grid-template-columns: repeat(4, 1fr);
+    .grid-stack {
+        /* GridstackJS will handle responsive columns */
     }
     
     .dashboard-title {
@@ -560,21 +504,17 @@ body.edit-mode-active .floating-add-btn {
 }
 
 @media (max-width: 576px) {
-    .dashboard-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .widget-container {
-        grid-column: span 2 !important;
+    .grid-stack {
+        /* GridstackJS will handle responsive columns */
     }
 }
 
 /* Edit Mode Indicator */
 body.edit-mode-active {
-    cursor: grabbing;
+    cursor: default;
 }
 
-body.edit-mode-active .dashboard-grid {
+body.edit-mode-active .grid-stack {
     padding: 1rem;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 1rem;
