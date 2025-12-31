@@ -140,7 +140,6 @@ body.edit-mode-active .floating-add-btn {
 
 .grid-stack > .grid-stack-item > .grid-stack-item-content {
     overflow: visible;
-    inset: 0;
 }
 
 .grid-stack > .grid-stack-item.hidden {

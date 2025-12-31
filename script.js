@@ -17,7 +17,6 @@ function initializeGridStack() {
     grid = GridStack.init({
         column: 12,
         cellHeight: '100px',
-        margin: '1.5rem',
         float: false,
         disableDrag: true,
         disableResize: true,
