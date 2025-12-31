@@ -49,23 +49,27 @@ python3 -m http.server 8080
 ### Edit Mode
 
 1. **Activate Edit Mode**: Hover over the "Life Dashboard" title to reveal the "Edit Layout" button, then click it
-2. **Reorder Widgets**: In edit mode, drag widgets to reorder them
-3. **Resize Widgets**: Click the resize button (↔) on any widget header to open the resize modal
-4. **Save Layout**: Click "Save Layout" button to exit edit mode
+2. **Reorder Widgets**: In edit mode, drag widgets by their headers to reorder them
+3. **Resize Widgets**: In edit mode, grab the bottom-right corner of any widget and drag to resize (respects min/max constraints)
+4. **Pin Widgets**: Click the pin button on weather/time widgets to show data in the top bar
+5. **Hide Widgets**: Click the eye icon to hide widgets; use the floating button (bottom-left) to restore them
+6. **Save Layout**: Click "Save Layout" button to exit edit mode
 
 ### Interacting with Widgets
 
 - **To-Do List**: Click checkboxes to mark tasks as complete
 - **Quick Notes**: Click in the text area to add/edit notes
 - **Clock**: Updates automatically every second
+- **Pinned Data**: Pinned widgets display their data in the title bar for quick access
 
 ## Technologies Used
 
 - **Bootstrap 5.3**: UI framework and responsive grid
 - **Bootstrap Icons**: Icon library
-- **Sortable.js**: Drag and drop functionality
+- **Sortable.js**: Drag and drop functionality for reordering
+- **Interact.js**: Drag-to-resize functionality by widget edges
 - **Vanilla JavaScript**: No additional frameworks
-- **CSS Grid**: For flexible widget layout
+- **CSS Grid**: 12-column flexible widget layout
 
 ## File Structure
 

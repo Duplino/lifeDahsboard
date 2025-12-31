@@ -93,6 +93,9 @@ function enableEditMode() {
             }
         });
     }
+    
+    // Enable resizing
+    updateResizingState(true);
 }
 
 function disableEditMode() {
@@ -109,6 +112,9 @@ function disableEditMode() {
         sortable.destroy();
         sortable = null;
     }
+    
+    // Disable resizing
+    updateResizingState(false);
 }
 
 // Widget controls functionality
@@ -295,61 +301,102 @@ function showSettingsModal() {
 }
 
 // Resizing functionality using Interact.js
+// This provides drag-to-resize functionality for widgets by their edges
+// Improvements made:
+// - Only works in edit mode for safety
+// - Uses delta-based calculations for smoother resizing
+// - Properly calculates grid column widths dynamically
+// - Respects min/max constraints from data attributes
+// - Stores original dimensions to prevent drift during resize
 function initializeResizing() {
     if (typeof interact === 'undefined') {
         console.log('Interact.js not loaded, skipping resize functionality');
+        console.log('To enable resizing, ensure Interact.js CDN is accessible');
         return;
     }
     
     const GRID_GAP = 16; // 1rem = 16px, should match CSS gap
-    const APPROX_ROW_HEIGHT = 100; // Approximate height of one grid row
-    const gridColumnWidth = calculateGridColumnWidth();
+    const GRID_COLUMNS = 12;
     
     interact('.widget-container')
         .resizable({
             edges: { left: false, right: true, bottom: true, top: false },
             listeners: {
+                start(event) {
+                    const container = event.target;
+                    // Store original dimensions to prevent accumulation errors
+                    container.dataset.originalWidth = getCurrentWidth(container);
+                    container.dataset.originalHeight = getCurrentHeight(container);
+                },
                 move(event) {
-                    const target = event.target;
-                    const container = target;
+                    const container = event.target;
                     
-                    // Get constraints
+                    // Only allow resizing in edit mode
+                    if (!editMode) return;
+                    
+                    // Get constraints from data attributes
                     const minWidth = parseInt(container.dataset.minWidth) || 2;
                     const maxWidth = parseInt(container.dataset.maxWidth) || 6;
                     const minHeight = parseInt(container.dataset.minHeight) || 2;
                     const maxHeight = parseInt(container.dataset.maxHeight) || 8;
                     
-                    // Calculate new size in grid units
-                    const rect = target.getBoundingClientRect();
-                    const newWidth = Math.round(rect.width / gridColumnWidth);
-                    const newHeight = Math.round(event.rect.height / APPROX_ROW_HEIGHT);
+                    // Calculate grid cell dimensions dynamically
+                    const grid = document.getElementById('dashboardGrid');
+                    const gridRect = grid.getBoundingClientRect();
+                    const columnWidth = (gridRect.width - (GRID_GAP * (GRID_COLUMNS - 1))) / GRID_COLUMNS;
+                    
+                    // Get delta changes from resize
+                    const deltaWidth = event.deltaRect.width;
+                    const deltaHeight = event.deltaRect.height;
+                    
+                    // Get original dimensions
+                    const currentWidth = parseInt(container.dataset.originalWidth) || getCurrentWidth(container);
+                    const currentHeight = parseInt(container.dataset.originalHeight) || getCurrentHeight(container);
+                    
+                    // Calculate how many grid units to change
+                    const widthChange = Math.round(deltaWidth / (columnWidth + GRID_GAP));
+                    const heightChange = Math.round(deltaHeight / 150); // Approximate row height with gap
+                    
+                    // Calculate new dimensions
+                    let newWidth = currentWidth + widthChange;
+                    let newHeight = currentHeight + heightChange;
                     
                     // Apply constraints
-                    const constrainedWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
-                    const constrainedHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
+                    newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+                    newHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
                     
                     // Update grid span
-                    container.style.gridColumn = `span ${constrainedWidth}`;
-                    container.style.gridRow = `span ${constrainedHeight}`;
+                    container.style.gridColumn = `span ${newWidth}`;
+                    container.style.gridRow = `span ${newHeight}`;
+                },
+                end(event) {
+                    const container = event.target;
+                    // Update stored dimensions for next resize
+                    container.dataset.originalWidth = getCurrentWidth(container);
+                    container.dataset.originalHeight = getCurrentHeight(container);
                 }
             },
             modifiers: [
                 interact.modifiers.restrictSize({
-                    min: { width: 100, height: 100 }
+                    min: { width: 150, height: 150 }
                 })
-            ],
-            inertia: true
+            },
+            inertia: false,
+            enabled: false // Start disabled, enable in edit mode
         });
 }
 
-function calculateGridColumnWidth() {
-    const GRID_GAP = 16; // 1rem = 16px, should match CSS gap
-    const GRID_COLUMNS = 12;
-    const grid = document.getElementById('dashboardGrid');
-    if (!grid) return 100;
+// Enable/disable resizing based on edit mode
+function updateResizingState(enabled) {
+    if (typeof interact === 'undefined') return;
     
-    const gridWidth = grid.offsetWidth;
-    return (gridWidth - (GRID_GAP * (GRID_COLUMNS - 1))) / GRID_COLUMNS;
+    const containers = document.querySelectorAll('.widget-container');
+    containers.forEach(container => {
+        const interactInstance = interact(container);
+        if (interactInstance) {
+            interactInstance.resizable({ enabled: enabled });
+        }
+    });
 }
 
 // Make function globally accessible for modal
@@ -382,8 +429,13 @@ console.log('Features:');
 console.log('- Real-time clock');
 console.log('- 12x12 grid layout');
 console.log('- Drag-to-reorder widgets (Edit mode)');
-console.log('- Drag edges to resize (Edit mode)');
+console.log('- Drag edges to resize (Edit mode - requires Interact.js)');
 console.log('- Pin widgets to top bar (Weather & Time)');
 console.log('- Hide/show widgets');
 console.log('- Widget settings (placeholder)');
 console.log('- Interactive to-do list');
+if (typeof interact !== 'undefined') {
+    console.log('✓ Interact.js loaded - Resizing enabled');
+} else {
+    console.log('✗ Interact.js not loaded - Resizing disabled');
+}
