@@ -278,10 +278,7 @@ function showWidgetFromModal(widgetType) {
     if (modalInstance) {
         modalInstance.hide();
         // Wait for modal to hide before showing it again
-        modalElement.addEventListener('hidden.bs.modal', function handler() {
-            modalElement.removeEventListener('hidden.bs.modal', handler);
-            showHiddenWidgetsModal();
-        });
+        modalElement.addEventListener('hidden.bs.modal', () => showHiddenWidgetsModal(), { once: true });
     } else {
         showHiddenWidgetsModal();
     }
