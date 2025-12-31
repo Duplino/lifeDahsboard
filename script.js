@@ -235,8 +235,17 @@ function showHiddenWidgetsModal() {
         return;
     }
     
-    const modal = new bootstrap.Modal(document.getElementById('hiddenWidgetsModal'));
+    const modalElement = document.getElementById('hiddenWidgetsModal');
     const listContainer = document.getElementById('hiddenWidgetsList');
+    
+    // Remove any existing modal instance and backdrop
+    const existingModal = bootstrap.Modal.getInstance(modalElement);
+    if (existingModal) {
+        existingModal.dispose();
+    }
+    
+    // Remove any orphaned backdrops
+    document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
     
     listContainer.innerHTML = '';
     
@@ -256,12 +265,26 @@ function showHiddenWidgetsModal() {
         });
     }
     
+    const modal = new bootstrap.Modal(modalElement);
     modal.show();
 }
 
 function showWidgetFromModal(widgetType) {
     showWidget(widgetType);
-    showHiddenWidgetsModal(); // Refresh the modal
+    
+    // Close and dispose of the modal properly
+    const modalElement = document.getElementById('hiddenWidgetsModal');
+    const modalInstance = bootstrap.Modal.getInstance(modalElement);
+    if (modalInstance) {
+        modalInstance.hide();
+        // Wait for modal to hide before showing it again
+        modalElement.addEventListener('hidden.bs.modal', function handler() {
+            modalElement.removeEventListener('hidden.bs.modal', handler);
+            showHiddenWidgetsModal();
+        });
+    } else {
+        showHiddenWidgetsModal();
+    }
 }
 
 function showSettingsModal() {
