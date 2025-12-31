@@ -474,3 +474,9 @@ body.edit-mode-active .dashboard-grid {
 .widget-content::-webkit-scrollbar-thumb:hover {
     background: rgba(0, 0, 0, 0.3);
 }
+
+/* Firefox scrollbar styling */
+.widget-content {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) rgba(0, 0, 0, 0.05);
+}

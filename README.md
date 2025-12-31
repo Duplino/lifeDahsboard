@@ -70,7 +70,7 @@ python3 -m http.server 8080
 ## File Structure
 
 ```
-lifeDahsboard/
+lifeDashboard/
 ├── index.html          # Main HTML file with widget structure
 ├── style.css           # Custom styles and widget themes
 ├── script.js           # Interactive functionality
