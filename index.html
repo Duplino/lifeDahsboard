@@ -21,13 +21,17 @@
         <div class="row mt-4 mb-4">
             <div class="col-12">
                 <div class="title-container">
-                    <h1 class="dashboard-title">Life Dashboard</h1>
+                    <div class="dropdown">
+                        <h1 class="dashboard-title dropdown-toggle" id="titleDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
+                            Life Dashboard
+                        </h1>
+                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="titleDropdown">
+                            <li><a class="dropdown-item" href="#" id="editMenuBtn"><i class="bi bi-pencil-square"></i> Edit Layout</a></li>
+                        </ul>
+                    </div>
                     <div class="pinned-bar" id="pinnedBar">
                         <!-- Pinned data will appear here -->
                     </div>
-                    <button class="btn btn-primary edit-btn" id="editBtn">
-                        <i class="bi bi-pencil-square"></i> Edit Layout
-                    </button>
                 </div>
             </div>
         </div>
@@ -263,6 +267,11 @@
         <!-- Floating Add Widget Button (shown in edit mode) -->
         <button class="btn btn-primary floating-add-btn" id="floatingAddBtn" title="Show hidden widgets">
             <i class="bi bi-plus-circle"></i>
+        </button>
+
+        <!-- Floating Save Button (shown in edit mode) -->
+        <button class="btn btn-success floating-save-btn" id="floatingSaveBtn" title="Save Layout">
+            <i class="bi bi-check-circle"></i>
         </button>
 
         <!-- Hidden Widgets Modal -->

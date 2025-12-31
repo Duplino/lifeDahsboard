@@ -62,29 +62,28 @@ function updateClock() {
 
 // Edit mode functionality
 function initializeEditMode() {
-    const editBtn = document.getElementById('editBtn');
+    const editMenuBtn = document.getElementById('editMenuBtn');
+    const floatingSaveBtn = document.getElementById('floatingSaveBtn');
     
-    if (!editBtn) return;
-    
-    editBtn.addEventListener('click', function() {
-        editMode = !editMode;
-        
-        if (editMode) {
+    if (editMenuBtn) {
+        editMenuBtn.addEventListener('click', function(e) {
+            e.preventDefault();
             enableEditMode();
-            editBtn.innerHTML = '<i class="bi bi-check-square"></i> Save Layout';
-            editBtn.classList.remove('btn-primary');
-            editBtn.classList.add('btn-success');
-        } else {
+        });
+    }
+    
+    if (floatingSaveBtn) {
+        floatingSaveBtn.addEventListener('click', function() {
             disableEditMode();
-            editBtn.innerHTML = '<i class="bi bi-pencil-square"></i> Edit Layout';
-            editBtn.classList.remove('btn-success');
-            editBtn.classList.add('btn-primary');
-        }
-    });
+        });
+    }
 }
 
 function enableEditMode() {
     const widgets = document.querySelectorAll('.grid-stack-item:not(.hidden)');
+    
+    // Set edit mode flag
+    editMode = true;
     
     // Add edit mode classes
     document.body.classList.add('edit-mode-active');
@@ -101,6 +100,9 @@ function enableEditMode() {
 
 function disableEditMode() {
     const widgets = document.querySelectorAll('.grid-stack-item');
+    
+    // Set edit mode flag
+    editMode = false;
     
     // Remove edit mode classes
     document.body.classList.remove('edit-mode-active');
