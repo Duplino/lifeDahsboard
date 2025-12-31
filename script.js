@@ -281,6 +281,8 @@ function initializeResizing() {
         return;
     }
     
+    const GRID_GAP = 16; // 1rem = 16px, should match CSS gap
+    const APPROX_ROW_HEIGHT = 100; // Approximate height of one grid row
     const gridColumnWidth = calculateGridColumnWidth();
     
     interact('.widget-container')
@@ -300,7 +302,7 @@ function initializeResizing() {
                     // Calculate new size in grid units
                     const rect = target.getBoundingClientRect();
                     const newWidth = Math.round(rect.width / gridColumnWidth);
-                    const newHeight = Math.round(event.rect.height / 100); // Approximate row height
+                    const newHeight = Math.round(event.rect.height / APPROX_ROW_HEIGHT);
                     
                     // Apply constraints
                     const constrainedWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
@@ -321,14 +323,13 @@ function initializeResizing() {
 }
 
 function calculateGridColumnWidth() {
+    const GRID_GAP = 16; // 1rem = 16px, should match CSS gap
+    const GRID_COLUMNS = 12;
     const grid = document.getElementById('dashboardGrid');
     if (!grid) return 100;
     
     const gridWidth = grid.offsetWidth;
-    const gap = 16; // 1rem gap
-    const columns = 12;
-    
-    return (gridWidth - (gap * (columns - 1))) / columns;
+    return (gridWidth - (GRID_GAP * (GRID_COLUMNS - 1))) / GRID_COLUMNS;
 }
 
 // Make function globally accessible for modal
