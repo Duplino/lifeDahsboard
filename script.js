@@ -1,16 +1,31 @@
 // Global variables
 let editMode = false;
-let sortable = null;
+let grid = null;
 let pinnedWidgets = new Set();
 let hiddenWidgets = new Set();
 
 // Initialize the dashboard
 document.addEventListener('DOMContentLoaded', function() {
+    initializeGridStack();
     initializeClock();
     initializeEditMode();
     initializeWidgetControls();
-    initializeResizing();
 });
+
+// Initialize GridstackJS
+function initializeGridStack() {
+    grid = GridStack.init({
+        column: 12,
+        cellHeight: '100px',
+        float: false,
+        disableDrag: true,
+        disableResize: true,
+        animate: true,
+        removable: false
+    });
+    
+    console.log('GridstackJS initialized');
+}
 
 // Clock functionality
 function initializeClock() {
@@ -47,31 +62,28 @@ function updateClock() {
 
 // Edit mode functionality
 function initializeEditMode() {
-    const editBtn = document.getElementById('editBtn');
-    const dashboardGrid = document.getElementById('dashboardGrid');
+    const editMenuBtn = document.getElementById('editMenuBtn');
+    const floatingSaveBtn = document.getElementById('floatingSaveBtn');
     
-    if (!editBtn || !dashboardGrid) return;
-    
-    editBtn.addEventListener('click', function() {
-        editMode = !editMode;
-        
-        if (editMode) {
+    if (editMenuBtn) {
+        editMenuBtn.addEventListener('click', function(e) {
+            e.preventDefault();
             enableEditMode();
-            editBtn.innerHTML = '<i class="bi bi-check-square"></i> Save Layout';
-            editBtn.classList.remove('btn-primary');
-            editBtn.classList.add('btn-success');
-        } else {
+        });
+    }
+    
+    if (floatingSaveBtn) {
+        floatingSaveBtn.addEventListener('click', function() {
             disableEditMode();
-            editBtn.innerHTML = '<i class="bi bi-pencil-square"></i> Edit Layout';
-            editBtn.classList.remove('btn-success');
-            editBtn.classList.add('btn-primary');
-        }
-    });
+        });
+    }
 }
 
 function enableEditMode() {
-    const dashboardGrid = document.getElementById('dashboardGrid');
-    const widgets = document.querySelectorAll('.widget-container:not(.hidden)');
+    const widgets = document.querySelectorAll('.grid-stack-item:not(.hidden)');
+    
+    // Set edit mode flag
+    editMode = true;
     
     // Add edit mode classes
     document.body.classList.add('edit-mode-active');
@@ -79,27 +91,18 @@ function enableEditMode() {
         widget.classList.add('edit-mode');
     });
     
-    // Initialize Sortable for drag and drop
-    if (typeof Sortable !== 'undefined') {
-        sortable = new Sortable(dashboardGrid, {
-            animation: 150,
-            ghostClass: 'sortable-ghost',
-            dragClass: 'sortable-drag',
-            handle: '.widget-header',
-            filter: '.hidden',
-            forceFallback: true,
-            onEnd: function(evt) {
-                console.log('Widget reordered from', evt.oldIndex, 'to', evt.newIndex);
-            }
-        });
+    // Enable GridstackJS dragging and resizing
+    if (grid) {
+        grid.enableMove(true);
+        grid.enableResize(true);
     }
-    
-    // Enable resizing
-    updateResizingState(true);
 }
 
 function disableEditMode() {
-    const widgets = document.querySelectorAll('.widget-container');
+    const widgets = document.querySelectorAll('.grid-stack-item');
+    
+    // Set edit mode flag
+    editMode = false;
     
     // Remove edit mode classes
     document.body.classList.remove('edit-mode-active');
@@ -107,14 +110,11 @@ function disableEditMode() {
         widget.classList.remove('edit-mode');
     });
     
-    // Destroy Sortable
-    if (sortable) {
-        sortable.destroy();
-        sortable = null;
+    // Disable GridstackJS dragging and resizing
+    if (grid) {
+        grid.enableMove(false);
+        grid.enableResize(false);
     }
-    
-    // Disable resizing
-    updateResizingState(false);
 }
 
 // Widget controls functionality
@@ -123,7 +123,7 @@ function initializeWidgetControls() {
     document.querySelectorAll('.pin-btn').forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.stopPropagation();
-            const container = this.closest('.widget-container');
+            const container = this.closest('.grid-stack-item');
             const widgetType = container.dataset.widget;
             
             if (pinnedWidgets.has(widgetType)) {
@@ -140,7 +140,7 @@ function initializeWidgetControls() {
     document.querySelectorAll('.hide-btn').forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.stopPropagation();
-            const container = this.closest('.widget-container');
+            const container = this.closest('.grid-stack-item');
             hideWidget(container);
         });
     });
@@ -221,15 +221,23 @@ function updatePinnedData() {
 // Hide/Show widget functionality
 function hideWidget(container) {
     const widgetType = container.dataset.widget;
-    container.classList.add('hidden');
+    
+    // Use GridstackJS to remove widget temporarily
+    if (grid) {
+        // Add hidden class instead of removing from grid
+        container.classList.add('hidden');
+        container.style.display = 'none';
+    }
+    
     hiddenWidgets.add(widgetType);
     console.log('Hidden:', widgetType);
 }
 
 function showWidget(widgetType) {
-    const container = document.querySelector(`.widget-container[data-widget="${widgetType}"]`);
+    const container = document.querySelector(`.grid-stack-item[data-widget="${widgetType}"]`);
     if (container) {
         container.classList.remove('hidden');
+        container.style.display = '';
         hiddenWidgets.delete(widgetType);
         console.log('Shown:', widgetType);
     }
@@ -300,105 +308,6 @@ function showSettingsModal() {
     modal.show();
 }
 
-// Resizing functionality using Interact.js
-// This provides drag-to-resize functionality for widgets by their edges
-// Improvements made:
-// - Only works in edit mode for safety
-// - Uses delta-based calculations for smoother resizing
-// - Properly calculates grid column widths dynamically
-// - Respects min/max constraints from data attributes
-// - Stores original dimensions to prevent drift during resize
-function initializeResizing() {
-    if (typeof interact === 'undefined') {
-        console.log('Interact.js not loaded, skipping resize functionality');
-        console.log('To enable resizing, ensure Interact.js CDN is accessible');
-        return;
-    }
-    
-    const GRID_GAP = 16; // 1rem = 16px, should match CSS gap
-    const GRID_COLUMNS = 12;
-    
-    interact('.widget-container')
-        .resizable({
-            edges: { left: false, right: true, bottom: true, top: false },
-            listeners: {
-                start(event) {
-                    const container = event.target;
-                    // Store original dimensions to prevent accumulation errors
-                    container.dataset.originalWidth = getCurrentWidth(container);
-                    container.dataset.originalHeight = getCurrentHeight(container);
-                },
-                move(event) {
-                    const container = event.target;
-                    
-                    // Only allow resizing in edit mode
-                    if (!editMode) return;
-                    
-                    // Get constraints from data attributes
-                    const minWidth = parseInt(container.dataset.minWidth) || 2;
-                    const maxWidth = parseInt(container.dataset.maxWidth) || 6;
-                    const minHeight = parseInt(container.dataset.minHeight) || 2;
-                    const maxHeight = parseInt(container.dataset.maxHeight) || 8;
-                    
-                    // Calculate grid cell dimensions dynamically
-                    const grid = document.getElementById('dashboardGrid');
-                    const gridRect = grid.getBoundingClientRect();
-                    const columnWidth = (gridRect.width - (GRID_GAP * (GRID_COLUMNS - 1))) / GRID_COLUMNS;
-                    
-                    // Get delta changes from resize
-                    const deltaWidth = event.deltaRect.width;
-                    const deltaHeight = event.deltaRect.height;
-                    
-                    // Get original dimensions
-                    const currentWidth = parseInt(container.dataset.originalWidth) || getCurrentWidth(container);
-                    const currentHeight = parseInt(container.dataset.originalHeight) || getCurrentHeight(container);
-                    
-                    // Calculate how many grid units to change
-                    const widthChange = Math.round(deltaWidth / (columnWidth + GRID_GAP));
-                    const heightChange = Math.round(deltaHeight / 150); // Approximate row height with gap
-                    
-                    // Calculate new dimensions
-                    let newWidth = currentWidth + widthChange;
-                    let newHeight = currentHeight + heightChange;
-                    
-                    // Apply constraints
-                    newWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
-                    newHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
-                    
-                    // Update grid span
-                    container.style.gridColumn = `span ${newWidth}`;
-                    container.style.gridRow = `span ${newHeight}`;
-                },
-                end(event) {
-                    const container = event.target;
-                    // Update stored dimensions for next resize
-                    container.dataset.originalWidth = getCurrentWidth(container);
-                    container.dataset.originalHeight = getCurrentHeight(container);
-                }
-            },
-            modifiers: [
-                interact.modifiers.restrictSize({
-                    min: { width: 150, height: 150 }
-                })
-            },
-            inertia: false,
-            enabled: false // Start disabled, enable in edit mode
-        });
-}
-
-// Enable/disable resizing based on edit mode
-function updateResizingState(enabled) {
-    if (typeof interact === 'undefined') return;
-    
-    const containers = document.querySelectorAll('.widget-container');
-    containers.forEach(container => {
-        const interactInstance = interact(container);
-        if (interactInstance) {
-            interactInstance.resizable({ enabled: enabled });
-        }
-    });
-}
-
 // Make function globally accessible for modal
 window.showWidgetFromModal = showWidgetFromModal;
 
@@ -416,26 +325,19 @@ document.addEventListener('change', function(e) {
     }
 });
 
-// Prevent default drag behavior on non-edit mode
-document.addEventListener('dragstart', function(e) {
-    if (!editMode) {
-        e.preventDefault();
-    }
-});
-
 // Log initialization
 console.log('Life Dashboard initialized successfully!');
 console.log('Features:');
 console.log('- Real-time clock');
-console.log('- 12x12 grid layout');
+console.log('- GridstackJS 12-column grid layout');
 console.log('- Drag-to-reorder widgets (Edit mode)');
-console.log('- Drag edges to resize (Edit mode - requires Interact.js)');
+console.log('- Drag edges to resize (Edit mode)');
 console.log('- Pin widgets to top bar (Weather & Time)');
 console.log('- Hide/show widgets');
 console.log('- Widget settings (placeholder)');
 console.log('- Interactive to-do list');
-if (typeof interact !== 'undefined') {
-    console.log('✓ Interact.js loaded - Resizing enabled');
+if (typeof GridStack !== 'undefined') {
+    console.log('✓ GridstackJS loaded - Drag and resize enabled');
 } else {
-    console.log('✗ Interact.js not loaded - Resizing disabled');
+    console.log('✗ GridstackJS not loaded');
 }
