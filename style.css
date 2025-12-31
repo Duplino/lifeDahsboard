@@ -15,7 +15,9 @@ body {
 /* Title Container */
 .title-container {
     position: relative;
-    display: inline-block;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
 .dashboard-title {
@@ -23,16 +25,53 @@ body {
     font-weight: 700;
     font-size: 2.5rem;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-    display: inline-block;
     margin: 0;
-    padding-right: 1rem;
+}
+
+/* Pinned Bar */
+.pinned-bar {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.pinned-item {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    color: white;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pinned-item i {
+    font-size: 1.2rem;
+}
+
+.pinned-item .pinned-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.pinned-item .pinned-label {
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
+
+.pinned-item .pinned-value {
+    font-size: 1.1rem;
+    font-weight: 600;
 }
 
 .edit-btn {
     position: absolute;
-    right: -120px;
-    top: 50%;
-    transform: translateY(-50%);
+    right: 0;
+    top: 0;
     opacity: 0;
     transition: opacity 0.3s ease;
     white-space: nowrap;
@@ -44,13 +83,38 @@ body {
 }
 
 .edit-btn:hover {
-    transform: translateY(-50%) scale(1.05);
+    transform: scale(1.05);
+}
+
+/* Floating Add Button */
+.floating-add-btn {
+    position: fixed;
+    bottom: 2rem;
+    left: 2rem;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.floating-add-btn:hover {
+    transform: scale(1.1);
+}
+
+body.edit-mode-active .floating-add-btn {
+    display: flex;
 }
 
 /* Dashboard Grid */
 .dashboard-grid {
     display: grid;
-    grid-template-columns: repeat(6, 1fr);
+    grid-template-columns: repeat(12, 1fr);
     gap: 1rem;
     padding: 0 1rem;
     transition: all 0.3s ease;
@@ -61,6 +125,11 @@ body {
     min-width: 0;
     transition: all 0.3s ease;
     cursor: default;
+    position: relative;
+}
+
+.widget-container.hidden {
+    display: none;
 }
 
 .widget-container.edit-mode {
@@ -93,10 +162,43 @@ body {
     display: flex;
     flex-direction: column;
     transition: all 0.3s ease;
+    position: relative;
 }
 
 .widget:hover {
     box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* Resize Handle */
+.resize-handle {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.1);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.edit-mode .resize-handle {
+    opacity: 1;
+}
+
+.resize-handle-br {
+    bottom: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    cursor: nwse-resize;
+    border-bottom-right-radius: 1rem;
+}
+
+.resize-handle-br::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 12px;
+    height: 12px;
+    border-right: 2px solid rgba(0, 0, 0, 0.3);
+    border-bottom: 2px solid rgba(0, 0, 0, 0.3);
 }
 
 .widget-header {
@@ -126,13 +228,27 @@ body {
     opacity: 1;
 }
 
-.resize-btn {
+.widget:hover .widget-controls {
+    opacity: 1;
+}
+
+.pin-btn, .hide-btn, .settings-btn {
     border: 1px solid #dee2e6;
     background: white;
 }
 
-.resize-btn:hover {
+.pin-btn:hover, .hide-btn:hover, .settings-btn:hover {
     background: #f8f9fa;
+}
+
+.pin-btn.pinned {
+    background: #667eea;
+    color: white;
+    border-color: #667eea;
+}
+
+.pin-btn.pinned:hover {
+    background: #5568d3;
 }
 
 .widget-content {
@@ -403,13 +519,13 @@ body {
 /* Responsive Design */
 @media (max-width: 1200px) {
     .dashboard-grid {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(8, 1fr);
     }
 }
 
 @media (max-width: 768px) {
     .dashboard-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(4, 1fr);
     }
     
     .dashboard-title {
@@ -418,16 +534,8 @@ body {
     
     .edit-btn {
         position: static;
-        transform: none;
         opacity: 1;
-        margin-left: 1rem;
-        margin-top: 1rem;
-    }
-    
-    .title-container {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-start;
+        margin-top: 0;
     }
     
     .widget-controls {
@@ -437,11 +545,11 @@ body {
 
 @media (max-width: 576px) {
     .dashboard-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(2, 1fr);
     }
     
     .widget-container {
-        grid-column: span 1 !important;
+        grid-column: span 2 !important;
     }
 }
 

@@ -14,11 +14,14 @@
 </head>
 <body>
     <div class="container-fluid">
-        <!-- Header with Title -->
+        <!-- Header with Title and Pinned Data Bar -->
         <div class="row mt-4 mb-4">
             <div class="col-12">
                 <div class="title-container">
                     <h1 class="dashboard-title">Life Dashboard</h1>
+                    <div class="pinned-bar" id="pinnedBar">
+                        <!-- Pinned data will appear here -->
+                    </div>
                     <button class="btn btn-primary edit-btn" id="editBtn">
                         <i class="bi bi-pencil-square"></i> Edit Layout
                     </button>
@@ -29,13 +32,19 @@
         <!-- Dashboard Grid -->
         <div class="dashboard-grid" id="dashboardGrid">
             <!-- Weather Widget -->
-            <div class="widget-container" data-widget="weather" data-min-width="2" data-max-width="4" data-min-height="2" data-max-height="3" style="grid-column: span 2; grid-row: span 2;">
+            <div class="widget-container" data-widget="weather" data-min-width="2" data-max-width="6" data-min-height="2" data-max-height="6" data-pinnable="true" style="grid-column: span 3; grid-row: span 3;">
                 <div class="widget weather-widget">
                     <div class="widget-header">
                         <h5 class="widget-title">Weather</h5>
                         <div class="widget-controls">
-                            <button class="btn btn-sm btn-light resize-btn" title="Resize">
-                                <i class="bi bi-arrows-angle-expand"></i>
+                            <button class="btn btn-sm btn-light pin-btn" title="Pin to top bar">
+                                <i class="bi bi-pin-angle"></i>
+                            </button>
+                            <button class="btn btn-sm btn-light hide-btn" title="Hide widget">
+                                <i class="bi bi-eye-slash"></i>
+                            </button>
+                            <button class="btn btn-sm btn-light settings-btn" title="Settings">
+                                <i class="bi bi-gear"></i>
                             </button>
                         </div>
                     </div>
@@ -51,17 +60,24 @@
                             </div>
                         </div>
                     </div>
+                    <div class="resize-handle resize-handle-br"></div>
                 </div>
             </div>
 
             <!-- Clock Widget -->
-            <div class="widget-container" data-widget="clock" data-min-width="2" data-max-width="3" data-min-height="2" data-max-height="2" style="grid-column: span 2; grid-row: span 2;">
+            <div class="widget-container" data-widget="clock" data-min-width="2" data-max-width="6" data-min-height="2" data-max-height="4" data-pinnable="true" style="grid-column: span 3; grid-row: span 3;">
                 <div class="widget clock-widget">
                     <div class="widget-header">
                         <h5 class="widget-title">Time</h5>
                         <div class="widget-controls">
-                            <button class="btn btn-sm btn-light resize-btn" title="Resize">
-                                <i class="bi bi-arrows-angle-expand"></i>
+                            <button class="btn btn-sm btn-light pin-btn" title="Pin to top bar">
+                                <i class="bi bi-pin-angle"></i>
+                            </button>
+                            <button class="btn btn-sm btn-light hide-btn" title="Hide widget">
+                                <i class="bi bi-eye-slash"></i>
+                            </button>
+                            <button class="btn btn-sm btn-light settings-btn" title="Settings">
+                                <i class="bi bi-gear"></i>
                             </button>
                         </div>
                     </div>
@@ -71,17 +87,21 @@
                             <div class="date" id="currentDate">Monday, January 1, 2024</div>
                         </div>
                     </div>
+                    <div class="resize-handle resize-handle-br"></div>
                 </div>
             </div>
 
             <!-- Calendar Widget -->
-            <div class="widget-container" data-widget="calendar" data-min-width="2" data-max-width="4" data-min-height="3" data-max-height="4" style="grid-column: span 2; grid-row: span 3;">
+            <div class="widget-container" data-widget="calendar" data-min-width="2" data-max-width="6" data-min-height="3" data-max-height="8" style="grid-column: span 3; grid-row: span 4;">
                 <div class="widget calendar-widget">
                     <div class="widget-header">
                         <h5 class="widget-title">Upcoming Events</h5>
                         <div class="widget-controls">
-                            <button class="btn btn-sm btn-light resize-btn" title="Resize">
-                                <i class="bi bi-arrows-angle-expand"></i>
+                            <button class="btn btn-sm btn-light hide-btn" title="Hide widget">
+                                <i class="bi bi-eye-slash"></i>
+                            </button>
+                            <button class="btn btn-sm btn-light settings-btn" title="Settings">
+                                <i class="bi bi-gear"></i>
                             </button>
                         </div>
                     </div>
@@ -110,17 +130,21 @@
                             </div>
                         </div>
                     </div>
+                    <div class="resize-handle resize-handle-br"></div>
                 </div>
             </div>
 
             <!-- To-Do Widget -->
-            <div class="widget-container" data-widget="todo" data-min-width="2" data-max-width="3" data-min-height="3" data-max-height="4" style="grid-column: span 2; grid-row: span 3;">
+            <div class="widget-container" data-widget="todo" data-min-width="2" data-max-width="6" data-min-height="3" data-max-height="8" style="grid-column: span 3; grid-row: span 4;">
                 <div class="widget todo-widget">
                     <div class="widget-header">
                         <h5 class="widget-title">To-Do Notes</h5>
                         <div class="widget-controls">
-                            <button class="btn btn-sm btn-light resize-btn" title="Resize">
-                                <i class="bi bi-arrows-angle-expand"></i>
+                            <button class="btn btn-sm btn-light hide-btn" title="Hide widget">
+                                <i class="bi bi-eye-slash"></i>
+                            </button>
+                            <button class="btn btn-sm btn-light settings-btn" title="Settings">
+                                <i class="bi bi-gear"></i>
                             </button>
                         </div>
                     </div>
@@ -158,34 +182,42 @@
                             </div>
                         </div>
                     </div>
+                    <div class="resize-handle resize-handle-br"></div>
                 </div>
             </div>
 
             <!-- Notes Widget -->
-            <div class="widget-container" data-widget="notes" data-min-width="2" data-max-width="4" data-min-height="2" data-max-height="4" style="grid-column: span 2; grid-row: span 2;">
+            <div class="widget-container" data-widget="notes" data-min-width="2" data-max-width="6" data-min-height="2" data-max-height="8" style="grid-column: span 3; grid-row: span 3;">
                 <div class="widget notes-widget">
                     <div class="widget-header">
                         <h5 class="widget-title">Quick Notes</h5>
                         <div class="widget-controls">
-                            <button class="btn btn-sm btn-light resize-btn" title="Resize">
-                                <i class="bi bi-arrows-angle-expand"></i>
+                            <button class="btn btn-sm btn-light hide-btn" title="Hide widget">
+                                <i class="bi bi-eye-slash"></i>
+                            </button>
+                            <button class="btn btn-sm btn-light settings-btn" title="Settings">
+                                <i class="bi bi-gear"></i>
                             </button>
                         </div>
                     </div>
                     <div class="widget-content">
                         <textarea class="form-control notes-textarea" placeholder="Type your notes here..." rows="5">Remember to:&#10;- Back up important files&#10;- Update passwords quarterly&#10;- Schedule regular breaks</textarea>
                     </div>
+                    <div class="resize-handle resize-handle-br"></div>
                 </div>
             </div>
 
             <!-- Fitness Widget -->
-            <div class="widget-container" data-widget="fitness" data-min-width="2" data-max-width="3" data-min-height="2" data-max-height="3" style="grid-column: span 2; grid-row: span 2;">
+            <div class="widget-container" data-widget="fitness" data-min-width="2" data-max-width="6" data-min-height="2" data-max-height="6" style="grid-column: span 3; grid-row: span 3;">
                 <div class="widget fitness-widget">
                     <div class="widget-header">
                         <h5 class="widget-title">Fitness Tracker</h5>
                         <div class="widget-controls">
-                            <button class="btn btn-sm btn-light resize-btn" title="Resize">
-                                <i class="bi bi-arrows-angle-expand"></i>
+                            <button class="btn btn-sm btn-light hide-btn" title="Hide widget">
+                                <i class="bi bi-eye-slash"></i>
+                            </button>
+                            <button class="btn btn-sm btn-light settings-btn" title="Settings">
+                                <i class="bi bi-gear"></i>
                             </button>
                         </div>
                     </div>
@@ -214,31 +246,46 @@
                             </div>
                         </div>
                     </div>
+                    <div class="resize-handle resize-handle-br"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Resize Modal -->
-        <div class="modal fade" id="resizeModal" tabindex="-1">
+        <!-- Floating Add Widget Button (shown in edit mode) -->
+        <button class="btn btn-primary floating-add-btn" id="floatingAddBtn" title="Show hidden widgets">
+            <i class="bi bi-plus-circle"></i>
+        </button>
+
+        <!-- Hidden Widgets Modal -->
+        <div class="modal fade" id="hiddenWidgetsModal" tabindex="-1">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title">Resize Widget</h5>
+                        <h5 class="modal-title">Hidden Widgets</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <div class="mb-3">
-                            <label for="widthRange" class="form-label">Width: <span id="widthValue">2</span> columns</label>
-                            <input type="range" class="form-range" id="widthRange" min="2" max="4" value="2">
-                        </div>
-                        <div class="mb-3">
-                            <label for="heightRange" class="form-label">Height: <span id="heightValue">2</span> rows</label>
-                            <input type="range" class="form-range" id="heightRange" min="2" max="4" value="2">
+                        <div id="hiddenWidgetsList">
+                            <p class="text-muted">No hidden widgets</p>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Widget Settings Modal -->
+        <div class="modal fade" id="settingsModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Widget Settings</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Widget settings coming soon...</p>
+                    </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="button" class="btn btn-primary" id="applyResize">Apply</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     </div>
                 </div>
             </div>
@@ -250,6 +297,9 @@
     
     <!-- Sortable.js for drag and drop -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    
+    <!-- Interact.js for resizing -->
+    <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.19/dist/interact.min.js"></script>
     
     <!-- Custom JS -->
     <script src="script.js"></script>

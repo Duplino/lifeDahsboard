@@ -1,13 +1,15 @@
 // Global variables
 let editMode = false;
 let sortable = null;
-let currentWidget = null;
+let pinnedWidgets = new Set();
+let hiddenWidgets = new Set();
 
 // Initialize the dashboard
 document.addEventListener('DOMContentLoaded', function() {
     initializeClock();
     initializeEditMode();
-    initializeResizeControls();
+    initializeWidgetControls();
+    initializeResizing();
 });
 
 // Clock functionality
@@ -38,6 +40,9 @@ function updateClock() {
     if (dateElement) {
         dateElement.textContent = dateString;
     }
+    
+    // Update pinned time if it exists
+    updatePinnedData();
 }
 
 // Edit mode functionality
@@ -66,7 +71,7 @@ function initializeEditMode() {
 
 function enableEditMode() {
     const dashboardGrid = document.getElementById('dashboardGrid');
-    const widgets = document.querySelectorAll('.widget-container');
+    const widgets = document.querySelectorAll('.widget-container:not(.hidden)');
     
     // Add edit mode classes
     document.body.classList.add('edit-mode-active');
@@ -75,21 +80,19 @@ function enableEditMode() {
     });
     
     // Initialize Sortable for drag and drop
-    sortable = new Sortable(dashboardGrid, {
-        animation: 150,
-        ghostClass: 'sortable-ghost',
-        dragClass: 'sortable-drag',
-        handle: '.widget',
-        forceFallback: true,
-        onEnd: function(evt) {
-            console.log('Widget reordered from', evt.oldIndex, 'to', evt.newIndex);
-        }
-    });
-    
-    // Show resize buttons
-    document.querySelectorAll('.widget-controls').forEach(controls => {
-        controls.style.opacity = '1';
-    });
+    if (typeof Sortable !== 'undefined') {
+        sortable = new Sortable(dashboardGrid, {
+            animation: 150,
+            ghostClass: 'sortable-ghost',
+            dragClass: 'sortable-drag',
+            handle: '.widget-header',
+            filter: '.hidden',
+            forceFallback: true,
+            onEnd: function(evt) {
+                console.log('Widget reordered from', evt.oldIndex, 'to', evt.newIndex);
+            }
+        });
+    }
 }
 
 function disableEditMode() {
@@ -106,99 +109,230 @@ function disableEditMode() {
         sortable.destroy();
         sortable = null;
     }
-    
-    // Hide resize buttons (will still show on hover due to CSS)
-    document.querySelectorAll('.widget-controls').forEach(controls => {
-        controls.style.opacity = '';
-    });
 }
 
-// Resize functionality
-function initializeResizeControls() {
-    const resizeButtons = document.querySelectorAll('.resize-btn');
-    const resizeModal = new bootstrap.Modal(document.getElementById('resizeModal'));
-    const widthRange = document.getElementById('widthRange');
-    const heightRange = document.getElementById('heightRange');
-    const widthValue = document.getElementById('widthValue');
-    const heightValue = document.getElementById('heightValue');
-    const applyBtn = document.getElementById('applyResize');
-    
-    resizeButtons.forEach(btn => {
+// Widget controls functionality
+function initializeWidgetControls() {
+    // Pin buttons
+    document.querySelectorAll('.pin-btn').forEach(btn => {
         btn.addEventListener('click', function(e) {
             e.stopPropagation();
+            const container = this.closest('.widget-container');
+            const widgetType = container.dataset.widget;
             
-            // Get the parent widget container
-            currentWidget = this.closest('.widget-container');
-            
-            if (!currentWidget) return;
-            
-            // Get current dimensions
-            const currentWidth = getCurrentWidth(currentWidget);
-            const currentHeight = getCurrentHeight(currentWidget);
-            
-            // Get min/max constraints
-            const minWidth = parseInt(currentWidget.dataset.minWidth) || 2;
-            const maxWidth = parseInt(currentWidget.dataset.maxWidth) || 4;
-            const minHeight = parseInt(currentWidget.dataset.minHeight) || 2;
-            const maxHeight = parseInt(currentWidget.dataset.maxHeight) || 4;
-            
-            // Set range constraints
-            widthRange.min = minWidth;
-            widthRange.max = maxWidth;
-            widthRange.value = currentWidth;
-            widthValue.textContent = currentWidth;
-            
-            heightRange.min = minHeight;
-            heightRange.max = maxHeight;
-            heightRange.value = currentHeight;
-            heightValue.textContent = currentHeight;
-            
-            // Update labels on range change
-            widthRange.oninput = function() {
-                widthValue.textContent = this.value;
-            };
-            
-            heightRange.oninput = function() {
-                heightValue.textContent = this.value;
-            };
-            
-            // Show modal
-            resizeModal.show();
+            if (pinnedWidgets.has(widgetType)) {
+                unpinWidget(widgetType);
+                this.classList.remove('pinned');
+            } else {
+                pinWidget(widgetType, container);
+                this.classList.add('pinned');
+            }
         });
     });
     
-    // Apply resize
-    if (applyBtn) {
-        applyBtn.addEventListener('click', function() {
-            if (!currentWidget) return;
-            
-            const newWidth = parseInt(widthRange.value);
-            const newHeight = parseInt(heightRange.value);
-            
-            // Apply new dimensions
-            currentWidget.style.gridColumn = `span ${newWidth}`;
-            currentWidget.style.gridRow = `span ${newHeight}`;
-            
-            // Close modal
-            resizeModal.hide();
-            
-            console.log('Widget resized to', newWidth, 'x', newHeight);
+    // Hide buttons
+    document.querySelectorAll('.hide-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const container = this.closest('.widget-container');
+            hideWidget(container);
         });
+    });
+    
+    // Settings buttons
+    document.querySelectorAll('.settings-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            showSettingsModal();
+        });
+    });
+    
+    // Floating add button
+    const floatingBtn = document.getElementById('floatingAddBtn');
+    if (floatingBtn) {
+        floatingBtn.addEventListener('click', showHiddenWidgetsModal);
     }
 }
 
-// Helper functions to get current dimensions
-function getCurrentWidth(element) {
-    const style = element.style.gridColumn;
-    const match = style.match(/span (\d+)/);
-    return match ? parseInt(match[1]) : 2;
+// Pin/Unpin widget functionality
+function pinWidget(widgetType, container) {
+    pinnedWidgets.add(widgetType);
+    updatePinnedBar();
+    console.log('Pinned:', widgetType);
 }
 
-function getCurrentHeight(element) {
-    const style = element.style.gridRow;
-    const match = style.match(/span (\d+)/);
-    return match ? parseInt(match[1]) : 2;
+function unpinWidget(widgetType) {
+    pinnedWidgets.delete(widgetType);
+    updatePinnedBar();
+    console.log('Unpinned:', widgetType);
 }
+
+function updatePinnedBar() {
+    const pinnedBar = document.getElementById('pinnedBar');
+    if (!pinnedBar) return;
+    
+    pinnedBar.innerHTML = '';
+    
+    pinnedWidgets.forEach(widgetType => {
+        const pinnedItem = document.createElement('div');
+        pinnedItem.className = 'pinned-item';
+        
+        if (widgetType === 'weather') {
+            pinnedItem.innerHTML = `
+                <i class="bi bi-cloud-sun-fill"></i>
+                <div class="pinned-content">
+                    <span class="pinned-label">Weather</span>
+                    <span class="pinned-value">72°F Partly Cloudy</span>
+                </div>
+            `;
+        } else if (widgetType === 'clock') {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            pinnedItem.innerHTML = `
+                <i class="bi bi-clock"></i>
+                <div class="pinned-content">
+                    <span class="pinned-label">Time</span>
+                    <span class="pinned-value" id="pinnedTime">${timeString}</span>
+                </div>
+            `;
+        }
+        
+        pinnedBar.appendChild(pinnedItem);
+    });
+}
+
+function updatePinnedData() {
+    if (pinnedWidgets.has('clock')) {
+        const pinnedTime = document.getElementById('pinnedTime');
+        if (pinnedTime) {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            pinnedTime.textContent = timeString;
+        }
+    }
+}
+
+// Hide/Show widget functionality
+function hideWidget(container) {
+    const widgetType = container.dataset.widget;
+    container.classList.add('hidden');
+    hiddenWidgets.add(widgetType);
+    console.log('Hidden:', widgetType);
+}
+
+function showWidget(widgetType) {
+    const container = document.querySelector(`.widget-container[data-widget="${widgetType}"]`);
+    if (container) {
+        container.classList.remove('hidden');
+        hiddenWidgets.delete(widgetType);
+        console.log('Shown:', widgetType);
+    }
+}
+
+function showHiddenWidgetsModal() {
+    if (typeof bootstrap === 'undefined') {
+        alert('Hidden widgets: ' + Array.from(hiddenWidgets).join(', ') || 'None');
+        return;
+    }
+    
+    const modal = new bootstrap.Modal(document.getElementById('hiddenWidgetsModal'));
+    const listContainer = document.getElementById('hiddenWidgetsList');
+    
+    listContainer.innerHTML = '';
+    
+    if (hiddenWidgets.size === 0) {
+        listContainer.innerHTML = '<p class="text-muted">No hidden widgets</p>';
+    } else {
+        hiddenWidgets.forEach(widgetType => {
+            const item = document.createElement('div');
+            item.className = 'd-flex justify-content-between align-items-center mb-2 p-2 border rounded';
+            item.innerHTML = `
+                <span class="text-capitalize">${widgetType}</span>
+                <button class="btn btn-sm btn-primary" onclick="showWidgetFromModal('${widgetType}')">
+                    <i class="bi bi-eye"></i> Show
+                </button>
+            `;
+            listContainer.appendChild(item);
+        });
+    }
+    
+    modal.show();
+}
+
+function showWidgetFromModal(widgetType) {
+    showWidget(widgetType);
+    showHiddenWidgetsModal(); // Refresh the modal
+}
+
+function showSettingsModal() {
+    if (typeof bootstrap === 'undefined') {
+        alert('Settings modal would open here');
+        return;
+    }
+    
+    const modal = new bootstrap.Modal(document.getElementById('settingsModal'));
+    modal.show();
+}
+
+// Resizing functionality using Interact.js
+function initializeResizing() {
+    if (typeof interact === 'undefined') {
+        console.log('Interact.js not loaded, skipping resize functionality');
+        return;
+    }
+    
+    const gridColumnWidth = calculateGridColumnWidth();
+    
+    interact('.widget-container')
+        .resizable({
+            edges: { left: false, right: true, bottom: true, top: false },
+            listeners: {
+                move(event) {
+                    const target = event.target;
+                    const container = target;
+                    
+                    // Get constraints
+                    const minWidth = parseInt(container.dataset.minWidth) || 2;
+                    const maxWidth = parseInt(container.dataset.maxWidth) || 6;
+                    const minHeight = parseInt(container.dataset.minHeight) || 2;
+                    const maxHeight = parseInt(container.dataset.maxHeight) || 8;
+                    
+                    // Calculate new size in grid units
+                    const rect = target.getBoundingClientRect();
+                    const newWidth = Math.round(rect.width / gridColumnWidth);
+                    const newHeight = Math.round(event.rect.height / 100); // Approximate row height
+                    
+                    // Apply constraints
+                    const constrainedWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+                    const constrainedHeight = Math.max(minHeight, Math.min(maxHeight, newHeight));
+                    
+                    // Update grid span
+                    container.style.gridColumn = `span ${constrainedWidth}`;
+                    container.style.gridRow = `span ${constrainedHeight}`;
+                }
+            },
+            modifiers: [
+                interact.modifiers.restrictSize({
+                    min: { width: 100, height: 100 }
+                })
+            ],
+            inertia: true
+        });
+}
+
+function calculateGridColumnWidth() {
+    const grid = document.getElementById('dashboardGrid');
+    if (!grid) return 100;
+    
+    const gridWidth = grid.offsetWidth;
+    const gap = 16; // 1rem gap
+    const columns = 12;
+    
+    return (gridWidth - (gap * (columns - 1))) / columns;
+}
+
+// Make function globally accessible for modal
+window.showWidgetFromModal = showWidgetFromModal;
 
 // To-do list functionality
 document.addEventListener('change', function(e) {
@@ -225,7 +359,10 @@ document.addEventListener('dragstart', function(e) {
 console.log('Life Dashboard initialized successfully!');
 console.log('Features:');
 console.log('- Real-time clock');
-console.log('- Drag and drop reordering (Edit mode)');
-console.log('- Widget resizing with constraints (Edit mode)');
+console.log('- 12x12 grid layout');
+console.log('- Drag-to-reorder widgets (Edit mode)');
+console.log('- Drag edges to resize (Edit mode)');
+console.log('- Pin widgets to top bar (Weather & Time)');
+console.log('- Hide/show widgets');
+console.log('- Widget settings (placeholder)');
 console.log('- Interactive to-do list');
-console.log('- Responsive grid layout');
