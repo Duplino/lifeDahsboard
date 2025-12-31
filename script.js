@@ -162,8 +162,10 @@ async function createWidget(config) {
     
     gridItem.appendChild(content);
     
-    // Add to grid
-    grid.addWidget(gridItem);
+    // Add to grid using makeWidget for GridStack v11+
+    const dashboardGrid = document.getElementById('dashboardGrid');
+    dashboardGrid.appendChild(gridItem);
+    grid.makeWidget(gridItem);
     
     // Initialize widget controls
     initializeWidgetControlsForWidget(gridItem);
