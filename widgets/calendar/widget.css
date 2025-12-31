@@ -1,0 +1,43 @@
+/* Calendar Widget */
+.calendar-widget .widget-header {
+    border-bottom-color: #e3f2fd;
+}
+
+.events-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.event-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    border-left: 4px solid #667eea;
+    transition: all 0.2s ease;
+}
+
+.event-item:hover {
+    background: #e9ecef;
+    transform: translateX(4px);
+}
+
+.event-time {
+    font-weight: 600;
+    color: #667eea;
+    white-space: nowrap;
+}
+
+.event-details h6 {
+    margin: 0 0 0.25rem 0;
+    font-weight: 600;
+    color: #333;
+}
+
+.event-details p {
+    margin: 0;
+    font-size: 0.875rem;
+    color: #666;
+}

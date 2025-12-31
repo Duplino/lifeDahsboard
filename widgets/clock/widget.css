@@ -1,0 +1,33 @@
+/* Clock Widget */
+.clock-widget {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    color: white;
+}
+
+.clock-widget .widget-title {
+    color: white;
+}
+
+.clock-widget .widget-header {
+    border-bottom-color: rgba(255, 255, 255, 0.2);
+}
+
+.clock-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    height: 100%;
+}
+
+.time {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.date {
+    font-size: 1.25rem;
+    opacity: 0.9;
+}

@@ -1,19 +1,53 @@
 // Global variables
 let editMode = false;
 let grid = null;
+let widgetInstances = new Map(); // Store widget class instances
+let widgetManifests = new Map(); // Store widget manifests
 let pinnedWidgets = new Set();
 let hiddenWidgets = new Set();
+let availableWidgets = [];
+
+// Widget layout storage key
+const LAYOUT_STORAGE_KEY = 'dashboard_layout';
+const SETTINGS_STORAGE_KEY = 'dashboard_widget_settings';
 
 // Initialize the dashboard
-document.addEventListener('DOMContentLoaded', function() {
-    initializeGridStack();
-    initializeClock();
+document.addEventListener('DOMContentLoaded', async function() {
+    await loadAvailableWidgets();
+    await loadWidgetManifests();
+    await initializeGridStack();
+    await loadDashboardLayout();
     initializeEditMode();
-    initializeWidgetControls();
 });
 
+// Load available widgets from apps.json
+async function loadAvailableWidgets() {
+    try {
+        const response = await fetch('apps.json');
+        availableWidgets = await response.json();
+        console.log('Available widgets:', availableWidgets);
+    } catch (error) {
+        console.error('Failed to load apps.json:', error);
+        availableWidgets = ['weather', 'clock', 'calendar', 'todo', 'notes', 'fitness'];
+    }
+}
+
+// Load widget manifests
+async function loadWidgetManifests() {
+    for (const widgetName of availableWidgets) {
+        try {
+            const response = await fetch(`widgets/${widgetName}/manifest.json`);
+            const manifest = await response.json();
+            widgetManifests.set(widgetName, manifest);
+            console.log(`Loaded manifest for ${widgetName}:`, manifest);
+        } catch (error) {
+            console.error(`Failed to load manifest for ${widgetName}:`, error);
+        }
+    }
+}
+
 // Initialize GridstackJS
-function initializeGridStack() {
+async function initializeGridStack() {
     grid = GridStack.init({
         column: 12,
         cellHeight: '100px',
@@ -27,37 +61,241 @@ function initializeGridStack() {
     console.log('GridstackJS initialized');
 }
 
-// Clock functionality
-function initializeClock() {
-    updateClock();
-    setInterval(updateClock, 1000);
+// Load dashboard layout from localStorage or create default
+async function loadDashboardLayout() {
+    const savedLayout = localStorage.getItem(LAYOUT_STORAGE_KEY);
+    let layout;
+    
+    if (savedLayout) {
+        try {
+            layout = JSON.parse(savedLayout);
+            console.log('Loaded saved layout:', layout);
+        } catch (error) {
+            console.error('Failed to parse saved layout:', error);
+            layout = createDefaultLayout();
+        }
+    } else {
+        layout = createDefaultLayout();
+    }
+    
+    // Load widgets based on layout
+    for (const widgetConfig of layout.widgets) {
+        await createWidget(widgetConfig);
+    }
+    
+    // Restore pinned widgets
+    if (layout.pinned) {
+        layout.pinned.forEach(widgetName => {
+            pinnedWidgets.add(widgetName);
+        });
+        updatePinnedBar();
+    }
+    
+    // Restore hidden widgets
+    if (layout.hidden) {
+        layout.hidden.forEach(widgetName => {
+            hiddenWidgets.add(widgetName);
+            const container = document.querySelector(`.grid-stack-item[data-widget="${widgetName}"]`);
+            if (container) {
+                container.classList.add('hidden');
+                container.style.display = 'none';
+            }
+        });
+    }
 }
 
-function updateClock() {
-    const now = new Date();
+// Create default layout
+function createDefaultLayout() {
+    return {
+        widgets: [
+            { name: 'weather', x: 0, y: 0, w: 3, h: 3 },
+            { name: 'clock', x: 3, y: 0, w: 3, h: 3 },
+            { name: 'calendar', x: 6, y: 0, w: 3, h: 4 },
+            { name: 'todo', x: 9, y: 0, w: 3, h: 4 },
+            { name: 'notes', x: 0, y: 3, w: 3, h: 3 },
+            { name: 'fitness', x: 3, y: 3, w: 3, h: 3 }
+        ],
+        pinned: [],
+        hidden: []
+    };
+}
+
+// Create a widget
+async function createWidget(config) {
+    const { name, x, y, w, h } = config;
+    const manifest = widgetManifests.get(name);
     
-    // Update time
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const seconds = String(now.getSeconds()).padStart(2, '0');
-    const timeString = `${hours}:${minutes}:${seconds}`;
-    
-    const timeElement = document.getElementById('currentTime');
-    if (timeElement) {
-        timeElement.textContent = timeString;
+    if (!manifest) {
+        console.error(`No manifest found for widget: ${name}`);
+        return;
     }
     
-    // Update date
-    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-    const dateString = now.toLocaleDateString('en-US', options);
+    // Load widget CSS
+    await loadWidgetCSS(name);
     
-    const dateElement = document.getElementById('currentDate');
-    if (dateElement) {
-        dateElement.textContent = dateString;
+    // Load widget HTML
+    const html = await loadWidgetHTML(name);
+    
+    // Load widget JS
+    await loadWidgetJS(name);
+    
+    // Create grid item
+    const gridItem = document.createElement('div');
+    gridItem.className = 'grid-stack-item';
+    gridItem.dataset.widget = name;
+    gridItem.dataset.pinnable = manifest.pinnable;
+    
+    // Set grid attributes
+    gridItem.setAttribute('gs-x', x);
+    gridItem.setAttribute('gs-y', y);
+    gridItem.setAttribute('gs-w', w);
+    gridItem.setAttribute('gs-h', h);
+    gridItem.setAttribute('gs-min-w', manifest.size.min.width);
+    gridItem.setAttribute('gs-max-w', manifest.size.max.width);
+    gridItem.setAttribute('gs-min-h', manifest.size.min.height);
+    gridItem.setAttribute('gs-max-h', manifest.size.max.height);
+    
+    // Create content wrapper
+    const content = document.createElement('div');
+    content.className = 'grid-stack-item-content';
+    content.innerHTML = html;
+    
+    gridItem.appendChild(content);
+    
+    // Add to grid using makeWidget for GridStack v11+
+    const dashboardGrid = document.getElementById('dashboardGrid');
+    dashboardGrid.appendChild(gridItem);
+    grid.makeWidget(gridItem);
+    
+    // Initialize widget controls
+    initializeWidgetControlsForWidget(gridItem);
+    
+    // Initialize widget instance
+    await initializeWidgetInstance(name, gridItem);
+}
+
+// Load widget CSS
+async function loadWidgetCSS(widgetName) {
+    return new Promise((resolve, reject) => {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = `widgets/${widgetName}/widget.css`;
+        link.onload = () => resolve();
+        link.onerror = () => {
+            console.warn(`Failed to load CSS for ${widgetName}`);
+            resolve(); // Don't reject, CSS is optional
+        };
+        document.head.appendChild(link);
+    });
+}
+
+// Load widget HTML
+async function loadWidgetHTML(widgetName) {
+    try {
+        const response = await fetch(`widgets/${widgetName}/widget.html`);
+        return await response.text();
+    } catch (error) {
+        console.error(`Failed to load HTML for ${widgetName}:`, error);
+        return '<div class="widget"><p>Failed to load widget</p></div>';
+    }
+}
+
+// Load widget JS
+async function loadWidgetJS(widgetName) {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = `widgets/${widgetName}/widget.js`;
+        script.onload = () => resolve();
+        script.onerror = () => {
+            console.warn(`Failed to load JS for ${widgetName}`);
+            resolve(); // Don't reject, JS is optional
+        };
+        document.body.appendChild(script);
+    });
+}
+
+// Initialize widget instance
+async function initializeWidgetInstance(widgetName, container) {
+    // Get widget settings from localStorage
+    const settings = getWidgetSettings(widgetName);
+    
+    // Convert widget name to class name (e.g., 'weather' -> 'WeatherWidget')
+    const className = widgetName.charAt(0).toUpperCase() + widgetName.slice(1) + 'Widget';
+    
+    // Check if widget class exists
+    if (window[className]) {
+        try {
+            const widgetContent = container.querySelector('.widget');
+            const instance = new window[className](widgetContent, settings);
+            widgetInstances.set(widgetName, instance);
+            console.log(`Initialized ${className}`);
+        } catch (error) {
+            console.error(`Failed to initialize ${className}:`, error);
+        }
+    }
+}
+
+// Get widget settings from localStorage
+function getWidgetSettings(widgetName) {
+    const allSettings = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    if (allSettings) {
+        try {
+            const parsed = JSON.parse(allSettings);
+            return parsed[widgetName] || {};
+        } catch (error) {
+            return {};
+        }
+    }
+    return {};
+}
+
+// Save widget settings to localStorage
+function saveWidgetSettings(widgetName, settings) {
+    const allSettings = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    let parsed = {};
+    
+    if (allSettings) {
+        try {
+            parsed = JSON.parse(allSettings);
+        } catch (error) {
+            parsed = {};
+        }
     }
     
-    // Update pinned time if it exists
-    updatePinnedData();
+    parsed[widgetName] = settings;
+    localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(parsed));
+}
+
+// Save dashboard layout
+function saveDashboardLayout() {
+    const widgets = [];
+    const gridItems = document.querySelectorAll('.grid-stack-item');
+    
+    gridItems.forEach(item => {
+        if (!item.classList.contains('hidden')) {
+            const widgetName = item.dataset.widget;
+            const node = item.gridstackNode;
+            
+            if (node) {
+                widgets.push({
+                    name: widgetName,
+                    x: node.x,
+                    y: node.y,
+                    w: node.w,
+                    h: node.h
+                });
+            }
+        }
+    });
+    
+    const layout = {
+        widgets: widgets,
+        pinned: Array.from(pinnedWidgets),
+        hidden: Array.from(hiddenWidgets)
+    };
+    
+    localStorage.setItem(LAYOUT_STORAGE_KEY, JSON.stringify(layout));
+    console.log('Layout saved:', layout);
 }
 
 // Edit mode functionality
@@ -75,6 +313,7 @@ function initializeEditMode() {
     if (floatingSaveBtn) {
         floatingSaveBtn.addEventListener('click', function() {
             disableEditMode();
+            saveDashboardLayout();
         });
     }
 }
@@ -118,12 +357,12 @@ function disableEditMode() {
 }
 
 // Widget controls functionality
-function initializeWidgetControls() {
-    // Pin buttons
-    document.querySelectorAll('.pin-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
+function initializeWidgetControlsForWidget(container) {
+    // Pin button
+    const pinBtn = container.querySelector('.pin-btn');
+    if (pinBtn) {
+        pinBtn.addEventListener('click', function(e) {
             e.stopPropagation();
-            const container = this.closest('.grid-stack-item');
             const widgetType = container.dataset.widget;
             
             if (pinnedWidgets.has(widgetType)) {
@@ -134,28 +373,30 @@ function initializeWidgetControls() {
                 this.classList.add('pinned');
             }
         });
-    });
+    }
     
-    // Hide buttons
-    document.querySelectorAll('.hide-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
+    // Hide button
+    const hideBtn = container.querySelector('.hide-btn');
+    if (hideBtn) {
+        hideBtn.addEventListener('click', function(e) {
             e.stopPropagation();
-            const container = this.closest('.grid-stack-item');
             hideWidget(container);
         });
-    });
+    }
     
-    // Settings buttons
-    document.querySelectorAll('.settings-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
+    // Settings button
+    const settingsBtn = container.querySelector('.settings-btn');
+    if (settingsBtn) {
+        settingsBtn.addEventListener('click', function(e) {
             e.stopPropagation();
-            showSettingsModal();
+            showSettingsModal(container.dataset.widget);
         });
-    });
+    }
     
     // Floating add button
     const floatingBtn = document.getElementById('floatingAddBtn');
-    if (floatingBtn) {
+    if (floatingBtn && !floatingBtn.dataset.initialized) {
+        floatingBtn.dataset.initialized = 'true';
         floatingBtn.addEventListener('click', showHiddenWidgetsModal);
     }
 }
@@ -164,12 +405,14 @@ function initializeWidgetControls() {
 function pinWidget(widgetType, container) {
     pinnedWidgets.add(widgetType);
     updatePinnedBar();
+    saveDashboardLayout();
     console.log('Pinned:', widgetType);
 }
 
 function unpinWidget(widgetType) {
     pinnedWidgets.delete(widgetType);
     updatePinnedBar();
+    saveDashboardLayout();
     console.log('Unpinned:', widgetType);
 }
 
@@ -180,56 +423,26 @@ function updatePinnedBar() {
     pinnedBar.innerHTML = '';
     
     pinnedWidgets.forEach(widgetType => {
-        const pinnedItem = document.createElement('div');
-        pinnedItem.className = 'pinned-item';
-        
-        if (widgetType === 'weather') {
-            pinnedItem.innerHTML = `
-                <i class="bi bi-cloud-sun-fill"></i>
-                <div class="pinned-content">
-                    <span class="pinned-label">Weather</span>
-                    <span class="pinned-value">72°F Partly Cloudy</span>
-                </div>
-            `;
-        } else if (widgetType === 'clock') {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-            pinnedItem.innerHTML = `
-                <i class="bi bi-clock"></i>
-                <div class="pinned-content">
-                    <span class="pinned-label">Time</span>
-                    <span class="pinned-value" id="pinnedTime">${timeString}</span>
-                </div>
-            `;
+        const instance = widgetInstances.get(widgetType);
+        if (instance && typeof instance.getPinnedHTML === 'function') {
+            const pinnedItem = document.createElement('div');
+            pinnedItem.className = 'pinned-item';
+            pinnedItem.innerHTML = instance.getPinnedHTML();
+            pinnedBar.appendChild(pinnedItem);
         }
-        
-        pinnedBar.appendChild(pinnedItem);
     });
-}
-
-function updatePinnedData() {
-    if (pinnedWidgets.has('clock')) {
-        const pinnedTime = document.getElementById('pinnedTime');
-        if (pinnedTime) {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-            pinnedTime.textContent = timeString;
-        }
-    }
 }
 
 // Hide/Show widget functionality
 function hideWidget(container) {
     const widgetType = container.dataset.widget;
     
-    // Use GridstackJS to remove widget temporarily
-    if (grid) {
-        // Add hidden class instead of removing from grid
-        container.classList.add('hidden');
-        container.style.display = 'none';
-    }
+    // Add hidden class
+    container.classList.add('hidden');
+    container.style.display = 'none';
     
     hiddenWidgets.add(widgetType);
+    saveDashboardLayout();
     console.log('Hidden:', widgetType);
 }
 
@@ -239,6 +452,7 @@ function showWidget(widgetType) {
         container.classList.remove('hidden');
         container.style.display = '';
         hiddenWidgets.delete(widgetType);
+        saveDashboardLayout();
         console.log('Shown:', widgetType);
     }
 }
@@ -267,10 +481,13 @@ function showHiddenWidgetsModal() {
         listContainer.innerHTML = '<p class="text-muted">No hidden widgets</p>';
     } else {
         hiddenWidgets.forEach(widgetType => {
+            const manifest = widgetManifests.get(widgetType);
+            const displayName = manifest ? manifest.name : widgetType;
+            
             const item = document.createElement('div');
             item.className = 'd-flex justify-content-between align-items-center mb-2 p-2 border rounded';
             item.innerHTML = `
-                <span class="text-capitalize">${widgetType}</span>
+                <span>${displayName}</span>
                 <button class="btn btn-sm btn-primary" onclick="showWidgetFromModal('${widgetType}')">
                     <i class="bi bi-eye"></i> Show
                 </button>
@@ -298,44 +515,124 @@ function showWidgetFromModal(widgetType) {
     }
 }
 
-function showSettingsModal() {
+function showSettingsModal(widgetType) {
     if (typeof bootstrap === 'undefined') {
-        alert('Settings modal would open here');
+        alert('Settings modal would open here for: ' + widgetType);
         return;
     }
     
-    const modal = new bootstrap.Modal(document.getElementById('settingsModal'));
+    const modalElement = document.getElementById('settingsModal');
+    const modalBody = modalElement.querySelector('.modal-body');
+    const modalTitle = modalElement.querySelector('.modal-title');
+    
+    const manifest = widgetManifests.get(widgetType);
+    if (!manifest) {
+        modalBody.innerHTML = '<p>No settings available for this widget.</p>';
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
+        return;
+    }
+    
+    modalTitle.textContent = `${manifest.name} Settings`;
+    
+    // Get current settings
+    const currentSettings = getWidgetSettings(widgetType);
+    
+    // Build settings form
+    let formHTML = '<form id="widgetSettingsForm">';
+    
+    if (manifest.settings && Object.keys(manifest.settings).length > 0) {
+        for (const [key, setting] of Object.entries(manifest.settings)) {
+            const currentValue = currentSettings[key] !== undefined ? currentSettings[key] : setting.default;
+            
+            formHTML += `<div class="mb-3">`;
+            formHTML += `<label for="setting_${key}" class="form-label">${setting.label}</label>`;
+            
+            if (setting.type === 'boolean') {
+                formHTML += `
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="setting_${key}" name="${key}" ${currentValue ? 'checked' : ''}>
+                        <label class="form-check-label" for="setting_${key}">${setting.description || ''}</label>
+                    </div>
+                `;
+            } else if (setting.type === 'number') {
+                formHTML += `
+                    <input type="number" class="form-control" id="setting_${key}" name="${key}" value="${currentValue}" 
+                           min="${setting.min || ''}" max="${setting.max || ''}">
+                    <div class="form-text">${setting.description || ''}</div>
+                `;
+            } else if (setting.type === 'text') {
+                formHTML += `
+                    <input type="text" class="form-control" id="setting_${key}" name="${key}" value="${currentValue}">
+                    <div class="form-text">${setting.description || ''}</div>
+                `;
+            }
+            
+            formHTML += `</div>`;
+        }
+    } else {
+        formHTML += '<p>No settings available for this widget.</p>';
+    }
+    
+    formHTML += '</form>';
+    
+    modalBody.innerHTML = formHTML;
+    
+    // Update footer with save button
+    const footer = modalElement.querySelector('.modal-footer');
+    footer.innerHTML = `
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary" id="saveSettingsBtn">Save Changes</button>
+    `;
+    
+    // Add save handler
+    const saveBtn = footer.querySelector('#saveSettingsBtn');
+    saveBtn.addEventListener('click', function() {
+        const form = document.getElementById('widgetSettingsForm');
+        const formData = new FormData(form);
+        const newSettings = {};
+        
+        for (const [key, setting] of Object.entries(manifest.settings)) {
+            if (setting.type === 'boolean') {
+                newSettings[key] = form.querySelector(`[name="${key}"]`).checked;
+            } else if (setting.type === 'number') {
+                newSettings[key] = parseFloat(formData.get(key));
+            } else {
+                newSettings[key] = formData.get(key);
+            }
+        }
+        
+        // Save settings
+        saveWidgetSettings(widgetType, newSettings);
+        
+        // Update widget instance
+        const instance = widgetInstances.get(widgetType);
+        if (instance && typeof instance.updateSettings === 'function') {
+            instance.updateSettings(newSettings);
+        }
+        
+        // Close modal
+        bootstrap.Modal.getInstance(modalElement).hide();
+    });
+    
+    const modal = new bootstrap.Modal(modalElement);
     modal.show();
 }
 
 // Make function globally accessible for modal
 window.showWidgetFromModal = showWidgetFromModal;
 
-// To-do list functionality
-document.addEventListener('change', function(e) {
-    if (e.target.matches('.todo-item input[type="checkbox"]')) {
-        const label = e.target.nextElementSibling;
-        if (e.target.checked) {
-            label.style.textDecoration = 'line-through';
-            label.style.color = '#999';
-        } else {
-            label.style.textDecoration = 'none';
-            label.style.color = '#333';
-        }
-    }
-});
-
 // Log initialization
 console.log('Life Dashboard initialized successfully!');
 console.log('Features:');
-console.log('- Real-time clock');
+console.log('- Modular widget system');
 console.log('- GridstackJS 12-column grid layout');
 console.log('- Drag-to-reorder widgets (Edit mode)');
 console.log('- Drag edges to resize (Edit mode)');
-console.log('- Pin widgets to top bar (Weather & Time)');
+console.log('- Pin widgets to top bar');
 console.log('- Hide/show widgets');
-console.log('- Widget settings (placeholder)');
-console.log('- Interactive to-do list');
+console.log('- Widget settings');
+console.log('- LocalStorage persistence');
 if (typeof GridStack !== 'undefined') {
     console.log('✓ GridstackJS loaded - Drag and resize enabled');
 } else {

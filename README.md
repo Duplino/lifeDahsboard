@@ -6,13 +6,21 @@ A beautiful, responsive personal dashboard built with Bootstrap 5.3, featuring c
 
 - **Modern Design**: Clean, gradient-based UI with smooth animations
 - **Responsive Layout**: Grid-based layout that adapts to different screen sizes
+- **Modular Widget System**: Each widget is self-contained with its own HTML, CSS, and JavaScript
+- **Widget Manifests**: Configuration files for each widget with settings, sizes, and metadata
+- **LocalStorage Persistence**: Dashboard layout, widget positions, sizes, and data are saved automatically
+- **Widget Data Storage**: Widgets can save their own data (todos, notes, etc.) to localStorage
 - **Customizable Widgets**: 6 different widget types included
+- **Widget Settings**: Each widget has configurable settings (e.g., Celsius/Fahrenheit for weather)
 - **Edit Mode**: Hover over the title to reveal the edit button
 - **Drag & Drop**: Reorder widgets by dragging them (in edit mode)
 - **Resizable Widgets**: Each widget has min/max width and height constraints
+- **Pin to Top Bar**: Pin important widgets (weather, time) to the top bar for quick access
+- **Hide/Show Widgets**: Temporarily hide widgets and restore them when needed
 - **Live Clock**: Real-time clock with date display
-- **Interactive To-Do List**: Check off completed tasks
-- **No API Dependencies**: Pure design implementation with placeholder data
+- **Interactive To-Do List**: Add, complete, and delete tasks with persistence
+- **Quick Notes**: Text editor with auto-save functionality
+- **Easy to Extend**: Add new widgets by creating a folder with manifest, HTML, CSS, and JS files
 
 ## Widget Types
 
@@ -75,9 +83,18 @@ python3 -m http.server 8080
 
 ```
 lifeDashboard/
-├── index.html          # Main HTML file with widget structure
-├── style.css           # Custom styles and widget themes
-├── script.js           # Interactive functionality
+├── index.html          # Main HTML file
+├── style.css           # Global styles
+├── script.js           # Dashboard core functionality
+├── apps.json           # List of available widgets
+├── widgets/            # Modular widget system
+│   ├── README.md       # Widget development guide
+│   ├── weather/        # Weather widget
+│   ├── clock/          # Clock widget
+│   ├── calendar/       # Calendar widget
+│   ├── todo/           # To-Do widget
+│   ├── notes/          # Notes widget
+│   └── fitness/        # Fitness widget
 └── README.md           # This file
 ```
 
@@ -124,14 +141,36 @@ The dashboard uses a 6-column grid by default. Modify in `style.css`:
 
 Modern browsers with CSS Grid support are required.
 
+## Modular Widget System
+
+The dashboard now uses a fully modular widget system where each widget is self-contained:
+
+- Each widget has its own folder in `widgets/` with HTML, CSS, JS, and manifest.json
+- Widgets are loaded dynamically based on `apps.json`
+- Widget settings and layouts are saved to localStorage
+- Easy to add new widgets - see `widgets/README.md` for documentation
+- Widgets can have pinned versions for the top bar
+- Each widget can define its own settings (boolean, number, text)
+- Widgets can save their own data to localStorage
+
+### Adding a New Widget
+
+1. Create a folder in `widgets/` with your widget name
+2. Add `manifest.json`, `widget.html`, `widget.css`, and `widget.js`
+3. Add the folder name to `apps.json`
+4. Refresh the dashboard!
+
+See `widgets/README.md` for complete documentation.
+
 ## Future Enhancements
 
 When ready to add API integrations:
 - Connect weather widget to weather API
 - Sync calendar with Google Calendar/Outlook
-- Persist widget layouts to localStorage
-- Add more widget types (news, stocks, etc.)
+- Add more widget types (news, stocks, habit tracker, etc.)
 - Theme customization options
+- Import/export dashboard layouts
+- Widget marketplace/sharing system
 
 ## License
 

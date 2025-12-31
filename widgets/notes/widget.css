@@ -1,0 +1,24 @@
+/* Notes Widget */
+.notes-widget {
+    background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+}
+
+.notes-widget .widget-header {
+    border-bottom-color: rgba(255, 255, 255, 0.3);
+}
+
+.notes-textarea {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: rgba(255, 255, 255, 0.5);
+    resize: none;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.notes-textarea:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.7);
+}

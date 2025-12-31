@@ -1,0 +1,56 @@
+/* To-Do Widget */
+.todo-widget .widget-header {
+    border-bottom-color: #f3e5f5;
+}
+
+.todo-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.todo-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.todo-item:hover {
+    background: #e9ecef;
+}
+
+.todo-item input[type="checkbox"] {
+    width: 1.25rem;
+    height: 1.25rem;
+    cursor: pointer;
+}
+
+.todo-item label {
+    flex: 1;
+    cursor: pointer;
+    margin: 0;
+    color: #333;
+}
+
+.todo-item input[type="checkbox"]:checked + label {
+    text-decoration: line-through;
+    color: #999;
+}
+
+.todo-item .delete-todo-btn {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.todo-item:hover .delete-todo-btn {
+    opacity: 1;
+}
+
+.todo-input-container {
+    padding-top: 1rem;
+    border-top: 1px solid #e9ecef;
+}
