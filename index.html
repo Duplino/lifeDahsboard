@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Life Dashboard</title>
+    
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- Header with Title -->
+        <div class="row mt-4 mb-4">
+            <div class="col-12">
+                <div class="title-container">
+                    <h1 class="dashboard-title">Life Dashboard</h1>
+                    <button class="btn btn-primary edit-btn" id="editBtn">
+                        <i class="bi bi-pencil-square"></i> Edit Layout
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid" id="dashboardGrid">
+            <!-- Weather Widget -->
+            <div class="widget-container" data-widget="weather" data-min-width="2" data-max-width="4" data-min-height="2" data-max-height="3" style="grid-column: span 2; grid-row: span 2;">
+                <div class="widget weather-widget">
+                    <div class="widget-header">
+                        <h5 class="widget-title">Weather</h5>
+                        <div class="widget-controls">
+                            <button class="btn btn-sm btn-light resize-btn" title="Resize">
+                                <i class="bi bi-arrows-angle-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="widget-content">
+                        <div class="weather-display">
+                            <div class="weather-icon">
+                                <i class="bi bi-cloud-sun-fill"></i>
+                            </div>
+                            <div class="weather-info">
+                                <h2 class="temperature">72°F</h2>
+                                <p class="weather-desc">Partly Cloudy</p>
+                                <p class="location">San Francisco, CA</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Clock Widget -->
+            <div class="widget-container" data-widget="clock" data-min-width="2" data-max-width="3" data-min-height="2" data-max-height="2" style="grid-column: span 2; grid-row: span 2;">
+                <div class="widget clock-widget">
+                    <div class="widget-header">
+                        <h5 class="widget-title">Time</h5>
+                        <div class="widget-controls">
+                            <button class="btn btn-sm btn-light resize-btn" title="Resize">
+                                <i class="bi bi-arrows-angle-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="widget-content">
+                        <div class="clock-display">
+                            <div class="time" id="currentTime">12:00:00</div>
+                            <div class="date" id="currentDate">Monday, January 1, 2024</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calendar Widget -->
+            <div class="widget-container" data-widget="calendar" data-min-width="2" data-max-width="4" data-min-height="3" data-max-height="4" style="grid-column: span 2; grid-row: span 3;">
+                <div class="widget calendar-widget">
+                    <div class="widget-header">
+                        <h5 class="widget-title">Upcoming Events</h5>
+                        <div class="widget-controls">
+                            <button class="btn btn-sm btn-light resize-btn" title="Resize">
+                                <i class="bi bi-arrows-angle-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="widget-content">
+                        <div class="events-list">
+                            <div class="event-item">
+                                <div class="event-time">9:00 AM</div>
+                                <div class="event-details">
+                                    <h6>Team Meeting</h6>
+                                    <p>Weekly sync with the team</p>
+                                </div>
+                            </div>
+                            <div class="event-item">
+                                <div class="event-time">2:00 PM</div>
+                                <div class="event-details">
+                                    <h6>Project Review</h6>
+                                    <p>Q4 project status review</p>
+                                </div>
+                            </div>
+                            <div class="event-item">
+                                <div class="event-time">4:30 PM</div>
+                                <div class="event-details">
+                                    <h6>Client Call</h6>
+                                    <p>Discuss new requirements</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- To-Do Widget -->
+            <div class="widget-container" data-widget="todo" data-min-width="2" data-max-width="3" data-min-height="3" data-max-height="4" style="grid-column: span 2; grid-row: span 3;">
+                <div class="widget todo-widget">
+                    <div class="widget-header">
+                        <h5 class="widget-title">To-Do Notes</h5>
+                        <div class="widget-controls">
+                            <button class="btn btn-sm btn-light resize-btn" title="Resize">
+                                <i class="bi bi-arrows-angle-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="widget-content">
+                        <div class="todo-list">
+                            <div class="todo-item">
+                                <input type="checkbox" class="form-check-input" id="todo1">
+                                <label class="form-check-label" for="todo1">
+                                    Complete project documentation
+                                </label>
+                            </div>
+                            <div class="todo-item">
+                                <input type="checkbox" class="form-check-input" id="todo2" checked>
+                                <label class="form-check-label" for="todo2">
+                                    Review pull requests
+                                </label>
+                            </div>
+                            <div class="todo-item">
+                                <input type="checkbox" class="form-check-input" id="todo3">
+                                <label class="form-check-label" for="todo3">
+                                    Update team on progress
+                                </label>
+                            </div>
+                            <div class="todo-item">
+                                <input type="checkbox" class="form-check-input" id="todo4">
+                                <label class="form-check-label" for="todo4">
+                                    Plan next sprint tasks
+                                </label>
+                            </div>
+                            <div class="todo-item">
+                                <input type="checkbox" class="form-check-input" id="todo5">
+                                <label class="form-check-label" for="todo5">
+                                    Schedule one-on-ones
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notes Widget -->
+            <div class="widget-container" data-widget="notes" data-min-width="2" data-max-width="4" data-min-height="2" data-max-height="4" style="grid-column: span 2; grid-row: span 2;">
+                <div class="widget notes-widget">
+                    <div class="widget-header">
+                        <h5 class="widget-title">Quick Notes</h5>
+                        <div class="widget-controls">
+                            <button class="btn btn-sm btn-light resize-btn" title="Resize">
+                                <i class="bi bi-arrows-angle-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="widget-content">
+                        <textarea class="form-control notes-textarea" placeholder="Type your notes here..." rows="5">Remember to:
+- Back up important files
+- Update passwords quarterly
+- Schedule regular breaks</textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fitness Widget -->
+            <div class="widget-container" data-widget="fitness" data-min-width="2" data-max-width="3" data-min-height="2" data-max-height="3" style="grid-column: span 2; grid-row: span 2;">
+                <div class="widget fitness-widget">
+                    <div class="widget-header">
+                        <h5 class="widget-title">Fitness Tracker</h5>
+                        <div class="widget-controls">
+                            <button class="btn btn-sm btn-light resize-btn" title="Resize">
+                                <i class="bi bi-arrows-angle-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="widget-content">
+                        <div class="fitness-stats">
+                            <div class="stat-item">
+                                <i class="bi bi-activity"></i>
+                                <div class="stat-info">
+                                    <div class="stat-value">7,842</div>
+                                    <div class="stat-label">Steps</div>
+                                </div>
+                            </div>
+                            <div class="stat-item">
+                                <i class="bi bi-heart-pulse"></i>
+                                <div class="stat-info">
+                                    <div class="stat-value">72 bpm</div>
+                                    <div class="stat-label">Heart Rate</div>
+                                </div>
+                            </div>
+                            <div class="stat-item">
+                                <i class="bi bi-fire"></i>
+                                <div class="stat-info">
+                                    <div class="stat-value">452 cal</div>
+                                    <div class="stat-label">Calories</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resize Modal -->
+        <div class="modal fade" id="resizeModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Resize Widget</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="widthRange" class="form-label">Width: <span id="widthValue">2</span> columns</label>
+                            <input type="range" class="form-range" id="widthRange" min="2" max="4" value="2">
+                        </div>
+                        <div class="mb-3">
+                            <label for="heightRange" class="form-label">Height: <span id="heightValue">2</span> rows</label>
+                            <input type="range" class="form-range" id="heightRange" min="2" max="4" value="2">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="applyResize">Apply</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5.3 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Sortable.js for drag and drop -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="script.js"></script>
+</body>
+</html>
