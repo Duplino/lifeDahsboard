@@ -128,7 +128,8 @@ function createDefaultLayout() {
             { name: 'calendar', x: 6, y: 0, w: 3, h: 4 },
             { name: 'todo', x: 9, y: 0, w: 3, h: 4 },
             { name: 'notes', x: 0, y: 3, w: 3, h: 3 },
-            { name: 'fitness', x: 3, y: 3, w: 3, h: 3 }
+            { name: 'fitness', x: 3, y: 3, w: 3, h: 3 },
+            { name: 'news', x: 6, y: 4, w: 3, h: 3 }
         ],
         pinned: [],
         hidden: []
