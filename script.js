@@ -69,7 +69,6 @@ async function initializeGridStack() {
             
             if (instance && typeof instance.onResize === 'function') {
                 instance.onResize(size);
-                console.log(`Widget ${widgetName} resized to ${size.width}x${size.height}`);
             }
         }
     });

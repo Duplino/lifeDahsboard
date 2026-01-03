@@ -155,7 +155,6 @@
         onResize(size) {
             // Called when the widget is resized
             this.size = size;
-            console.log(`Todo widget resized to ${size.width}x${size.height}`);
         }
 
         updateSettings(settings) {
