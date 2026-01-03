@@ -3,9 +3,10 @@
     'use strict';
 
     class TodoWidget {
-        constructor(container, settings) {
+        constructor(container, settings, size) {
             this.container = container;
             this.settings = settings || {};
+            this.size = size || { width: 0, height: 0 };
             this.showCompleted = this.settings.showCompleted !== undefined ? this.settings.showCompleted : true;
             this.sortByDate = this.settings.sortByDate || false;
             this.todos = [];
@@ -149,6 +150,11 @@
             this.todos = this.todos.filter(t => t.id !== id);
             this.saveTodos();
             this.renderTodos();
+        }
+        
+        onResize(size) {
+            // Called when the widget is resized
+            this.size = size;
         }
 
         updateSettings(settings) {

@@ -3,9 +3,10 @@
     'use strict';
 
     class WeatherWidget {
-        constructor(container, settings) {
+        constructor(container, settings, size) {
             this.container = container;
             this.settings = settings || {};
+            this.size = size || { width: 0, height: 0 };
             this.useCelsius = this.settings.temperatureUnit || false;
             this.location = this.settings.location || 'San Francisco, CA';
             this.init();
@@ -20,6 +21,9 @@
 
             // Convert temperature if needed
             this.updateTemperature();
+            
+            // Apply size-specific styling
+            this.applyStyling();
         }
 
         updateTemperature() {
@@ -33,6 +37,30 @@
                     tempElement.textContent = `${fahrenheit}°F`;
                 }
             }
+        }
+        
+        applyStyling() {
+            // Apply different styling based on widget size
+            const weatherDisplay = this.container.querySelector('.weather-display');
+            if (!weatherDisplay) return;
+            
+            // Reset classes
+            weatherDisplay.classList.remove('weather-compact', 'weather-large');
+            
+            // Small widget (width 2 or height 2)
+            if (this.size.width <= 2 || this.size.height <= 2) {
+                weatherDisplay.classList.add('weather-compact');
+            }
+            // Large widget (width >= 4 or height >= 4)
+            else if (this.size.width >= 4 || this.size.height >= 4) {
+                weatherDisplay.classList.add('weather-large');
+            }
+        }
+        
+        onResize(size) {
+            // Called when the widget is resized
+            this.size = size;
+            this.applyStyling();
         }
 
         updateSettings(settings) {

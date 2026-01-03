@@ -43,3 +43,41 @@
     opacity: 0.8;
     margin: 0;
 }
+
+/* Compact styling for small widgets */
+.weather-display.weather-compact .weather-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.weather-display.weather-compact .temperature {
+    font-size: 2rem;
+}
+
+.weather-display.weather-compact .weather-desc {
+    font-size: 0.9rem;
+    margin: 0.25rem 0;
+}
+
+.weather-display.weather-compact .location {
+    font-size: 0.8rem;
+}
+
+/* Large styling for big widgets */
+.weather-display.weather-large .weather-icon {
+    font-size: 5rem;
+    margin-bottom: 1.5rem;
+}
+
+.weather-display.weather-large .temperature {
+    font-size: 4rem;
+}
+
+.weather-display.weather-large .weather-desc {
+    font-size: 1.5rem;
+    margin: 0.75rem 0;
+}
+
+.weather-display.weather-large .location {
+    font-size: 1.25rem;
+}
