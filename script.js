@@ -247,7 +247,6 @@ async function initializeWidgetInstance(widgetName, container) {
             const widgetContent = container.querySelector('.widget');
             const instance = new window[className](widgetContent, settings, size);
             widgetInstances.set(widgetName, instance);
-            console.log(`Initialized ${className} with size ${size.width}x${size.height}`);
         } catch (error) {
             console.error(`Failed to initialize ${className}:`, error);
         }
