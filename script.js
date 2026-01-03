@@ -385,11 +385,14 @@ function initializeWidgetControlsForWidget(container) {
     if (manifest && manifest.settings && manifest.settings.showTitlebar !== undefined) {
         const showTitlebar = settings.showTitlebar !== undefined ? settings.showTitlebar : manifest.settings.showTitlebar.default;
         const header = container.querySelector('.widget-header');
-        if (header) {
+        const title = container.querySelector('.widget-title');
+        if (header && title) {
             if (!showTitlebar) {
-                header.style.display = 'none';
+                title.style.display = 'none';
+                header.classList.add('titlebar-hidden');
             } else {
-                header.style.display = '';
+                title.style.display = '';
+                header.classList.remove('titlebar-hidden');
             }
         }
     }
@@ -652,8 +655,15 @@ function showSettingsModal(widgetType) {
         if (container && manifest.settings.showTitlebar !== undefined) {
             const showTitlebar = newSettings.showTitlebar !== undefined ? newSettings.showTitlebar : manifest.settings.showTitlebar.default;
             const header = container.querySelector('.widget-header');
-            if (header) {
-                header.style.display = showTitlebar ? '' : 'none';
+            const title = container.querySelector('.widget-title');
+            if (header && title) {
+                if (!showTitlebar) {
+                    title.style.display = 'none';
+                    header.classList.add('titlebar-hidden');
+                } else {
+                    title.style.display = '';
+                    header.classList.remove('titlebar-hidden');
+                }
             }
         }
         

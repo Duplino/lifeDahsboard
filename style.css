@@ -188,6 +188,14 @@ body.edit-mode-active .floating-save-btn {
     margin-bottom: 1rem;
     border-bottom: 2px solid #f0f0f0;
     padding-bottom: 0.75rem;
+    min-height: 2rem;
+}
+
+.widget-header.titlebar-hidden {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+    min-height: 0;
 }
 
 .widget-title {
@@ -202,6 +210,14 @@ body.edit-mode-active .floating-save-btn {
     gap: 0.5rem;
     opacity: 0;
     transition: opacity 0.3s ease;
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 10;
+}
+
+.widget-header:not(.titlebar-hidden) .widget-controls {
+    position: static;
 }
 
 .grid-stack-item.edit-mode .widget-controls,
