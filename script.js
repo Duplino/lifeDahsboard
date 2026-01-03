@@ -374,6 +374,21 @@ function disableEditMode() {
     }
 }
 
+// Helper function to update titlebar visibility
+function updateTitlebarVisibility(container, showTitlebar) {
+    const header = container.querySelector('.widget-header');
+    const title = container.querySelector('.widget-title');
+    if (header && title) {
+        if (!showTitlebar) {
+            title.style.display = 'none';
+            header.classList.add('titlebar-hidden');
+        } else {
+            title.style.display = '';
+            header.classList.remove('titlebar-hidden');
+        }
+    }
+}
+
 // Widget controls functionality
 function initializeWidgetControlsForWidget(container) {
     // Apply titlebar visibility setting
@@ -384,17 +399,7 @@ function initializeWidgetControlsForWidget(container) {
     // Check if showTitlebar setting exists and apply it
     if (manifest && manifest.settings && manifest.settings.showTitlebar !== undefined) {
         const showTitlebar = settings.showTitlebar !== undefined ? settings.showTitlebar : manifest.settings.showTitlebar.default;
-        const header = container.querySelector('.widget-header');
-        const title = container.querySelector('.widget-title');
-        if (header && title) {
-            if (!showTitlebar) {
-                title.style.display = 'none';
-                header.classList.add('titlebar-hidden');
-            } else {
-                title.style.display = '';
-                header.classList.remove('titlebar-hidden');
-            }
-        }
+        updateTitlebarVisibility(container, showTitlebar);
     }
     
     // Pin button
@@ -654,17 +659,7 @@ function showSettingsModal(widgetType) {
         const container = document.querySelector(`.grid-stack-item[data-widget="${widgetType}"]`);
         if (container && manifest.settings.showTitlebar !== undefined) {
             const showTitlebar = newSettings.showTitlebar !== undefined ? newSettings.showTitlebar : manifest.settings.showTitlebar.default;
-            const header = container.querySelector('.widget-header');
-            const title = container.querySelector('.widget-title');
-            if (header && title) {
-                if (!showTitlebar) {
-                    title.style.display = 'none';
-                    header.classList.add('titlebar-hidden');
-                } else {
-                    title.style.display = '';
-                    header.classList.remove('titlebar-hidden');
-                }
-            }
+            updateTitlebarVisibility(container, showTitlebar);
         }
         
         // Close modal
