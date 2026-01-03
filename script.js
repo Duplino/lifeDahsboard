@@ -58,6 +58,22 @@ async function initializeGridStack() {
         removable: false
     });
     
+    // Listen for resize events
+    grid.on('resizestop', function(event, el) {
+        const widgetName = el.getAttribute('data-widget');
+        const node = el.gridstackNode;
+        
+        if (widgetName && node) {
+            const size = { width: node.w, height: node.h };
+            const instance = widgetInstances.get(widgetName);
+            
+            if (instance && typeof instance.onResize === 'function') {
+                instance.onResize(size);
+                console.log(`Widget ${widgetName} resized to ${size.width}x${size.height}`);
+            }
+        }
+    });
+    
     console.log('GridstackJS initialized');
 }
 
@@ -219,6 +235,10 @@ async function initializeWidgetInstance(widgetName, container) {
     // Get widget settings from localStorage
     const settings = getWidgetSettings(widgetName);
     
+    // Get current size from GridStack node
+    const node = container.gridstackNode;
+    const size = node ? { width: node.w, height: node.h } : { width: 0, height: 0 };
+    
     // Convert widget name to class name (e.g., 'weather' -> 'WeatherWidget')
     const className = widgetName.charAt(0).toUpperCase() + widgetName.slice(1) + 'Widget';
     
@@ -226,9 +246,9 @@ async function initializeWidgetInstance(widgetName, container) {
     if (window[className]) {
         try {
             const widgetContent = container.querySelector('.widget');
-            const instance = new window[className](widgetContent, settings);
+            const instance = new window[className](widgetContent, settings, size);
             widgetInstances.set(widgetName, instance);
-            console.log(`Initialized ${className}`);
+            console.log(`Initialized ${className} with size ${size.width}x${size.height}`);
         } catch (error) {
             console.error(`Failed to initialize ${className}:`, error);
         }
@@ -358,6 +378,24 @@ function disableEditMode() {
 
 // Widget controls functionality
 function initializeWidgetControlsForWidget(container) {
+    // Apply titlebar visibility setting
+    const widgetName = container.dataset.widget;
+    const settings = getWidgetSettings(widgetName);
+    const manifest = widgetManifests.get(widgetName);
+    
+    // Check if showTitlebar setting exists and apply it
+    if (manifest && manifest.settings && manifest.settings.showTitlebar) {
+        const showTitlebar = settings.showTitlebar !== undefined ? settings.showTitlebar : manifest.settings.showTitlebar.default;
+        const header = container.querySelector('.widget-header');
+        if (header) {
+            if (!showTitlebar) {
+                header.style.display = 'none';
+            } else {
+                header.style.display = '';
+            }
+        }
+    }
+    
     // Pin button
     const pinBtn = container.querySelector('.pin-btn');
     if (pinBtn) {
@@ -609,6 +647,16 @@ function showSettingsModal(widgetType) {
         const instance = widgetInstances.get(widgetType);
         if (instance && typeof instance.updateSettings === 'function') {
             instance.updateSettings(newSettings);
+        }
+        
+        // Handle titlebar visibility
+        const container = document.querySelector(`.grid-stack-item[data-widget="${widgetType}"]`);
+        if (container && manifest.settings.showTitlebar !== undefined) {
+            const showTitlebar = newSettings.showTitlebar !== undefined ? newSettings.showTitlebar : manifest.settings.showTitlebar.default;
+            const header = container.querySelector('.widget-header');
+            if (header) {
+                header.style.display = showTitlebar ? '' : 'none';
+            }
         }
         
         // Close modal

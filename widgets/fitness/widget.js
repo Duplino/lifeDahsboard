@@ -3,9 +3,10 @@
     'use strict';
 
     class FitnessWidget {
-        constructor(container, settings) {
+        constructor(container, settings, size) {
             this.container = container;
             this.settings = settings || {};
+            this.size = size || { width: 0, height: 0 };
             this.stepGoal = this.settings.stepGoal || 10000;
             this.calorieGoal = this.settings.calorieGoal || 2000;
             this.init();
@@ -14,6 +15,12 @@
         init() {
             // Placeholder - stats are hardcoded in HTML for now
             // In a real implementation, this would fetch data from a fitness API or device
+        }
+        
+        onResize(size) {
+            // Called when the widget is resized
+            this.size = size;
+            console.log(`Fitness widget resized to ${size.width}x${size.height}`);
         }
 
         updateSettings(settings) {

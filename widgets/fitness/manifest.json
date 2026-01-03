@@ -17,6 +17,12 @@
     }
   },
   "settings": {
+    "showTitlebar": {
+      "type": "boolean",
+      "label": "Show Title Bar",
+      "default": true,
+      "description": "Display or hide the widget title bar"
+    },
     "stepGoal": {
       "type": "number",
       "label": "Daily Step Goal",

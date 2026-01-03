@@ -31,3 +31,23 @@
     font-size: 1.25rem;
     opacity: 0.9;
 }
+
+/* Compact styling for small widgets */
+.clock-display.clock-compact .time {
+    font-size: 2rem;
+    margin-bottom: 0.25rem;
+}
+
+.clock-display.clock-compact .date {
+    font-size: 0.9rem;
+}
+
+/* Large styling for big widgets */
+.clock-display.clock-large .time {
+    font-size: 4rem;
+    margin-bottom: 0.75rem;
+}
+
+.clock-display.clock-large .date {
+    font-size: 1.5rem;
+}

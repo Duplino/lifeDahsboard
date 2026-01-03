@@ -3,9 +3,10 @@
     'use strict';
 
     class NotesWidget {
-        constructor(container, settings) {
+        constructor(container, settings, size) {
             this.container = container;
             this.settings = settings || {};
+            this.size = size || { width: 0, height: 0 };
             this.autoSave = this.settings.autoSave !== undefined ? this.settings.autoSave : true;
             this.storageKey = 'widget_notes_data';
             this.saveTimeout = null;
@@ -59,6 +60,12 @@
                     this.saveNotes();
                 });
             }
+        }
+        
+        onResize(size) {
+            // Called when the widget is resized
+            this.size = size;
+            console.log(`Notes widget resized to ${size.width}x${size.height}`);
         }
 
         updateSettings(settings) {

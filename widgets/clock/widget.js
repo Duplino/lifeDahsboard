@@ -3,9 +3,10 @@
     'use strict';
 
     class ClockWidget {
-        constructor(container, settings) {
+        constructor(container, settings, size) {
             this.container = container;
             this.settings = settings || {};
+            this.size = size || { width: 0, height: 0 };
             this.format24Hour = this.settings.format24Hour || false;
             this.showSeconds = this.settings.showSeconds !== undefined ? this.settings.showSeconds : true;
             this.interval = null;
@@ -15,6 +16,7 @@
         init() {
             this.updateClock();
             this.interval = setInterval(() => this.updateClock(), 1000);
+            this.applyStyling();
         }
 
         updateClock() {
@@ -51,6 +53,31 @@
             
             // Update pinned time if it exists
             this.updatePinnedTime();
+        }
+        
+        applyStyling() {
+            // Apply different styling based on widget size
+            const clockDisplay = this.container.querySelector('.clock-display');
+            if (!clockDisplay) return;
+            
+            // Reset classes
+            clockDisplay.classList.remove('clock-compact', 'clock-large');
+            
+            // Small widget (width 2 or height 2)
+            if (this.size.width <= 2 || this.size.height <= 2) {
+                clockDisplay.classList.add('clock-compact');
+            }
+            // Large widget (width >= 4 or height >= 4)
+            else if (this.size.width >= 4 || this.size.height >= 4) {
+                clockDisplay.classList.add('clock-large');
+            }
+        }
+        
+        onResize(size) {
+            // Called when the widget is resized
+            this.size = size;
+            console.log(`Clock widget resized to ${size.width}x${size.height}`);
+            this.applyStyling();
         }
         
         updatePinnedTime() {
