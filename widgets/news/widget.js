@@ -119,12 +119,12 @@
             widget.classList.remove('news-small', 'news-medium', 'news-large');
 
             // Small widget (show 1 item with carousel)
-            if (this.size.width <= 2 || this.size.height <= 2) {
+            if (this.size.width <= 2 && this.size.height <= 2) {
                 widget.classList.add('news-small');
                 this.showCarousel();
             }
             // Medium widget (show 2 items, no carousel)
-            else if (this.size.width === 3 || this.size.height === 3) {
+            else if (this.size.width === 3 && this.size.height === 3) {
                 widget.classList.add('news-medium');
                 this.showMultiple(2);
             }
@@ -132,6 +132,11 @@
             else if (this.size.width >= 4 || this.size.height >= 4) {
                 widget.classList.add('news-large');
                 this.showMultiple(6);
+            }
+            // Default to medium for other sizes
+            else {
+                widget.classList.add('news-medium');
+                this.showMultiple(2);
             }
         }
 
@@ -217,7 +222,12 @@
             const dots = this.container.querySelectorAll('.carousel-dot');
 
             items.forEach((item, index) => {
-                item.classList.toggle('active', index === this.currentIndex);
+                const isActive = index === this.currentIndex;
+                item.classList.toggle('active', isActive);
+                // Update display property for carousel mode
+                if (item.style.position === 'absolute') {
+                    item.style.display = isActive ? 'block' : 'none';
+                }
             });
 
             dots.forEach((dot, index) => {
