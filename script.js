@@ -382,7 +382,7 @@ function initializeWidgetControlsForWidget(container) {
     const manifest = widgetManifests.get(widgetName);
     
     // Check if showTitlebar setting exists and apply it
-    if (manifest && manifest.settings && manifest.settings.showTitlebar) {
+    if (manifest && manifest.settings && manifest.settings.showTitlebar !== undefined) {
         const showTitlebar = settings.showTitlebar !== undefined ? settings.showTitlebar : manifest.settings.showTitlebar.default;
         const header = container.querySelector('.widget-header');
         if (header) {
