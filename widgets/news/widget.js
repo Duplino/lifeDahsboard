@@ -118,17 +118,17 @@
             // Reset classes
             widget.classList.remove('news-small', 'news-medium', 'news-large');
 
-            // Small widget (show 1 item with carousel)
+            // Small widget (show 1 item with carousel) - must be both narrow AND short
             if (this.size.width <= 2 && this.size.height <= 2) {
                 widget.classList.add('news-small');
                 this.showCarousel();
             }
-            // Medium widget (show 2 items, no carousel)
+            // Medium widget (show 2 items, no carousel) - standard 3x3 size
             else if (this.size.width === 3 && this.size.height === 3) {
                 widget.classList.add('news-medium');
                 this.showMultiple(2);
             }
-            // Large widget (show 3+ items, scrollable)
+            // Large widget (show 3+ items, scrollable) - either wide OR tall gives more space
             else if (this.size.width >= 4 || this.size.height >= 4) {
                 widget.classList.add('news-large');
                 this.showMultiple(6);
